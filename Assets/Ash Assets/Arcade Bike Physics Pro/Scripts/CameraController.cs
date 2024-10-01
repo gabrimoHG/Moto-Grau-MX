@@ -1,0 +1,303 @@
+using UnityEngine;
+using Cinemachine;
+using HistoricGamesUtils;
+using Unity.VisualScripting;
+using Unity.Mathematics;
+
+
+namespace ArcadeBP_Pro
+{
+    public class CameraController : MonoBehaviour
+    {
+        [Tooltip("Array of Cinemachine virtual cameras.")]
+        public CinemachineVirtualCamera[] cameras;
+
+        [Tooltip("Reference to the bike controller.")]
+        public ArcadeBikeControllerPro bikeController;
+
+        [Tooltip("Speed threshold above which the camera shake effect starts.")]
+        public float speedThresholdForShake = 50f;
+
+        [Tooltip("Amplitude of the camera shake effect.")]
+        public float shakeAmplitude = 1.2f;
+
+        [Tooltip("Frequency of the camera shake effect.")]
+        public float shakeFrequency = 2.0f;
+
+        [Tooltip("Key to switch between different cameras.")]
+        public KeyCode switchCameraKey = KeyCode.C;
+
+        [Tooltip("Minimum camera FOV value.")]
+        public float minFOV = 60f;
+
+        [Tooltip("Maximum camera FOV value.")]
+        public float maxFOV = 80f;
+
+        [Tooltip("Smoothing factor for the camera FOV value.")]
+        public float FOV_smoother = 5f;
+
+        [SerializeField] float firstCamReverseZOffset;
+        [SerializeField] float firstCamStandardZOffset;
+        [SerializeField] float secondCamReverseZOffset;
+        [SerializeField] float secondCamStandardZOffset;
+        [SerializeField] float thirdCamReverseZOffset;
+        [SerializeField] float thirdCamStandardZOffset;
+        [SerializeField] float perspectiveChangeDuration;
+
+        private CinemachineBasicMultiChannelPerlin[] cameraNoise;
+        public int currentCameraIndex { private set; get; }
+        public bool isFirstPerson { private set; get; }
+        CinemachineTransposer transposer;
+        private bool isShaking = false;
+        bool isManuallyMoving, isRotated;
+
+        Transform firstPersonFollowTarget;
+        Transform[] thirdPersonFollowTargets;
+        Transform[] thirdPersonLookAtTargets;
+
+
+        private void Awake()
+        {
+            transposer = cameras[currentCameraIndex].
+                    GetCinemachineComponent<CinemachineTransposer>();
+            transform.parent = null;
+            smoothFOV = 60f;
+            //transform.name = "CameraController_" + RemovePrefix(bikeController.transform.name, "ABP_Pro");
+        }
+
+        void Start()
+        {
+            cameraNoise = new CinemachineBasicMultiChannelPerlin[cameras.Length];
+            GameManager.instance.onBikeReset += ResetCameraTarget;
+            thirdPersonFollowTargets = new Transform[cameras.Length-1];
+            thirdPersonLookAtTargets = new Transform[cameras.Length-1];
+            speedThresholdForShake = bikeController.bikeSettings.maxSpeed * .75f;
+
+
+            for (int i = 0; i < cameras.Length; i++)
+            {
+                cameras[i].gameObject.SetActive(i == currentCameraIndex);
+                cameraNoise[i] = cameras[i].GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>();
+
+                if (i < cameras.Length - 1)
+                {
+                    thirdPersonFollowTargets[i] = cameras[i].Follow;
+                    thirdPersonLookAtTargets[i] = cameras[i].LookAt;
+                }
+                else 
+                {
+                    firstPersonFollowTarget = cameras[i].Follow;
+                    firstPersonFollowTarget = cameras[i].LookAt;
+                }
+            }
+        }
+
+        void Update()
+        {
+            if (Input.GetKeyDown(switchCameraKey))
+                SwitchCamera();
+            SetReversePerspective();
+            float bikeSpeed = bikeController.localBikeVelocity.magnitude;
+            if (bikeSpeed > speedThresholdForShake && bikeController.isActiveAndEnabled)
+            {
+                UpdateShake(bikeSpeed);
+            }
+            else if (isShaking)
+            {
+                StopShake();
+            }
+
+            //UpdateFOV(bikeSpeed);
+        }
+
+        public void SwitchCamera()
+        {
+            cameras[currentCameraIndex].gameObject.SetActive(false);
+            if (currentCameraIndex < cameras.Length - 1)
+                currentCameraIndex++;
+            else
+                currentCameraIndex = 0;
+
+            if (currentCameraIndex == 2)
+            {
+                isFirstPerson = true;
+                transposer = cameras[currentCameraIndex].
+                    GetCinemachineComponent<CinemachineTransposer>();
+                Vector3 followOffset = transposer.m_FollowOffset;
+                Vector3 targetPosition = transposer.FollowTarget.position + 
+                    transposer.LookAtTarget.rotation * followOffset;
+                cameras[currentCameraIndex].transform.position = targetPosition;
+            }
+            else
+                isFirstPerson = false;
+            cameras[currentCameraIndex].gameObject.SetActive(true);
+            isManuallyMoving = false;
+            //Debug.Log("False by switch!");
+            StopShake();
+        }
+
+        void UpdateShake(float bikeSpeed)
+        {
+            isShaking = true;
+            if (cameraNoise[currentCameraIndex] != null)
+            {
+                float t = Mathf.InverseLerp(speedThresholdForShake,
+                    bikeController.bikeSettings.maxSpeed, bikeSpeed);
+                if (isFirstPerson)
+                {
+                    cameraNoise[currentCameraIndex].m_AmplitudeGain = Mathf.Lerp(0, shakeAmplitude / 2, t);
+                    cameraNoise[currentCameraIndex].m_FrequencyGain = Mathf.Lerp(0, shakeFrequency / 2, t);
+
+                }
+                else
+                {
+                    cameraNoise[currentCameraIndex].m_AmplitudeGain = Mathf.Lerp(0, shakeAmplitude, t);
+                    cameraNoise[currentCameraIndex].m_FrequencyGain = Mathf.Lerp(0, shakeFrequency, t);
+                }
+            }
+        }
+
+        void StopShake()
+        {
+            isShaking = false;
+
+            for (int i = 0; i < cameras.Length; i++)
+            {
+                if (cameraNoise[i] != null)
+                {
+                    cameraNoise[i].m_AmplitudeGain = 0f;
+                    cameraNoise[i].m_FrequencyGain = 0f;
+                }
+            }
+        }
+
+
+        float smoothFOV = 60f;
+        void UpdateFOV(float bikeSpeed)
+        {
+            float t = Mathf.InverseLerp(0, bikeController.bikeSettings.maxSpeed, bikeSpeed);
+            float newFOV = 0;
+            if(isFirstPerson)
+                newFOV = Mathf.Lerp(minFOV, maxFOV*.85f, t);
+            else
+                newFOV = Mathf.Lerp(minFOV, maxFOV, t);
+
+            smoothFOV = Mathf.Lerp(smoothFOV, newFOV, Time.deltaTime * FOV_smoother);
+
+            cameras[currentCameraIndex].m_Lens.FieldOfView = smoothFOV;
+        }
+
+
+        public void SetCameratarget(Transform followTarget, Transform lookAtTarget)
+        {
+            foreach (var camera in cameras)
+            {
+                camera.LookAt = lookAtTarget;
+                camera.Follow = followTarget;
+            }
+
+            StopShake();
+        }
+
+        public void ResetCameraTarget()
+        {
+            for (int i = 0; i < cameras.Length; i++)
+            {
+                if (i < cameras.Length - 1)
+                {
+                    cameras[i].Follow = thirdPersonFollowTargets[i];
+                    cameras[i].LookAt = thirdPersonLookAtTargets[i];
+                }
+                else
+                {
+                    cameras[i].Follow = firstPersonFollowTarget;
+                    cameras[i].LookAt = firstPersonFollowTarget;
+                }
+            }
+
+            StopShake();
+        }
+
+
+        void SetReversePerspective()
+        {
+            var reversePos = Vector3.zero;
+            var target = transform;
+            if (currentCameraIndex <= 1)
+                target = thirdPersonFollowTargets[currentCameraIndex];
+            else
+                target = firstPersonFollowTarget;
+
+            if (bikeController.bikeInput.reverse > 0 &&
+                bikeController.isReversing && !isManuallyMoving)
+            {
+                if (currentCameraIndex == 0)
+                    reversePos = new Vector3(0, 0, firstCamReverseZOffset);
+                else if (currentCameraIndex == 1)
+                {
+                    var standardY = thirdPersonFollowTargets[currentCameraIndex].localPosition.y;
+                    reversePos = new Vector3(0, standardY, secondCamReverseZOffset);
+                }
+                else
+                {
+                    var standardY = firstPersonFollowTarget.localPosition.y;
+                    reversePos = new Vector3(0, standardY, thirdCamReverseZOffset);
+                    if (!isRotated)
+                    {
+                        Quaternion firstPersonRotation = Quaternion.Euler(target.rotation.eulerAngles.x,
+                            120, target.rotation.eulerAngles.z);
+                        StartCoroutine(InterpolationUtilities.RotateToTargetLinearly(
+                            target, target.rotation, firstPersonRotation, .4f));
+                        isRotated = true;
+                    }
+                }
+
+                StartCoroutine(InterpolationUtilities.MoveToTargetLinearly(target, target.localPosition,
+                    reversePos, perspectiveChangeDuration, ResetIsManuallyMoving, true));
+                isManuallyMoving = true;
+            }
+            else if(!isManuallyMoving)
+            {
+                if (currentCameraIndex == 0)
+                    reversePos = new Vector3(0, 0, firstCamStandardZOffset);
+                else if (currentCameraIndex == 1)
+                {
+                    var standardY = thirdPersonFollowTargets[currentCameraIndex].localPosition.y;
+                    reversePos = new Vector3(0, standardY, secondCamStandardZOffset);
+                }
+                else
+                {
+                    var standardY = firstPersonFollowTarget.localPosition.y;
+                    reversePos = new Vector3(0, standardY, thirdCamStandardZOffset);
+                    if (isRotated)
+                    {
+                        Quaternion firstPersonRotation = Quaternion.Euler(target.rotation.eulerAngles.x,
+                            -90, target.rotation.eulerAngles.z);
+                        StartCoroutine(InterpolationUtilities.RotateToTargetLinearly(
+                            target, target.rotation, firstPersonRotation, .4f));
+                        isRotated = false;
+                    }
+                }
+
+                StartCoroutine(InterpolationUtilities.MoveToTargetLinearly(target, target.localPosition,
+                    reversePos, perspectiveChangeDuration, ResetIsManuallyMoving, true));
+                isManuallyMoving = true;
+            }
+        }
+        void ResetIsManuallyMoving() 
+        { 
+            isManuallyMoving = !isManuallyMoving;
+            //Debug.Log("False by movement finish!");
+        }
+        private string RemovePrefix(string originalName, string prefix)
+        {
+            if (originalName.StartsWith(prefix))
+            {
+                return originalName.Substring(prefix.Length);
+            }
+            return originalName;
+        }
+
+    }
+
+}

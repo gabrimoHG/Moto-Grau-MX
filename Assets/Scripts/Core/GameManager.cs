@@ -1,0 +1,75 @@
+using ArcadeBP_Pro;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class GameManager : MonoBehaviour
+{
+    public static GameManager instance;
+    [SerializeField]ArcadeBikeControllerPro currentBikeController;
+    [SerializeField] Vector3 spawnPosition;
+    Quaternion spawnRotation;
+    public ArcadeBikeControllerPro GetCurrentBike() { return currentBikeController; }
+    public BikeAdditionalPhysics bikeAdditionalPhysics { get; private set; }
+    public CameraController cameraController { get; private set; }
+    public event Action onBikeReset = delegate { };
+    public bool isPaused { get; private set; }
+    private void Awake()
+    {
+        SetSingletonInstance();
+        InitialSet();
+    }
+    void InitialSet()
+    {
+        spawnRotation = Quaternion.Euler(0, -90, 0);
+        var bikeInstance = Instantiate(currentBikeController, spawnPosition, spawnRotation);
+        currentBikeController = bikeInstance;
+        currentBikeController.bikeReferences.cameraController.gameObject.SetActive(true);
+        cameraController = bikeInstance.bikeReferences.cameraController;
+        bikeAdditionalPhysics = currentBikeController.GetComponent<BikeAdditionalPhysics>();
+        bikeAdditionalPhysics.onDislodged += UpdateSpawnTransform;
+    }
+
+    void UpdateSpawnTransform()
+    {
+        spawnPosition = bikeAdditionalPhysics.GetRagdollBikeTransform().position;
+    }
+    void SetSingletonInstance()
+    {
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+            Destroy(gameObject);
+    }
+
+    public void SetPauseState(bool isPaused)
+    {
+        if (isPaused)
+            Time.timeScale = 0;
+        else
+            Time.timeScale = 1;
+        this.isPaused = isPaused;
+    }
+
+    public void ResetBike()
+    { 
+        currentBikeController.bikeReferences.bikeRb.velocity = Vector3.zero;
+        currentBikeController.bikeReferences.bikeRb.angularVelocity = Vector3.zero;
+        currentBikeController.bikeReferences.rotator.transform.localRotation = Quaternion.identity;
+        currentBikeController.transform.position = spawnPosition;
+
+        bikeAdditionalPhysics.CleanRagdolls();
+        currentBikeController.gameObject.SetActive(true);
+        currentBikeController.SetCanAccelerate(true);
+        currentBikeController.bikeAudio.engineSound.pitch = currentBikeController.bikeAudio.minPitch;
+        currentBikeController.bikeReferences.cameraController.gameObject.SetActive(true);
+        onBikeReset();
+    }
+
+
+
+}
