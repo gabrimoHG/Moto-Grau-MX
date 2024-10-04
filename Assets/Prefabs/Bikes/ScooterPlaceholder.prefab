@@ -4011,8 +4011,8 @@ MonoBehaviour:
     frictionCoefficient: 0.25
     driftFrictionFactor: 1
     driftTurnFactor: 4
-    rollingResistance: 0.3
-    gravity: 15
+    rollingResistance: 0.5
+    gravity: 9.81
     burnoutRotationSpeed: 60
     burnoutSmoothness: 1
     wheelieAngle: 100
@@ -4020,7 +4020,6 @@ MonoBehaviour:
     wheelieMinSpeed: 4
     wheelieMaxSpeed: 20
     minWheelieDropSpeed: 75
-    wheelieWeight: 0
     wheelieAnimationSpeed: 0.5
     alignRotatorSpeed_Ground: 20
     alignRotatorSpeed_Air: 2
@@ -4087,7 +4086,7 @@ MonoBehaviour:
       m_Curve:
       - serializedVersion: 3
         time: 0.00003335101
-        value: 0.7031175
+        value: 0.6487737
         inSlope: -0.03295452
         outSlope: -0.03295452
         tangentMode: 0
@@ -4096,30 +4095,30 @@ MonoBehaviour:
         outWeight: 0.045373086
       - serializedVersion: 3
         time: 0.17993374
-        value: 0.9029573
-        inSlope: -0.0016215997
-        outSlope: -0.0016215997
+        value: 0.8318924
+        inSlope: -3.267538
+        outSlope: -3.267538
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.87202024
-        outWeight: 0.0058266623
+        outWeight: 0.15215418
       - serializedVersion: 3
-        time: 0.20135245
-        value: 0.5007046
-        inSlope: -1.2126899
-        outSlope: -1.2126899
+        time: 0.39991862
+        value: 0.30012977
+        inSlope: -1.1385467
+        outSlope: -1.1385467
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0.11734072
-        outWeight: 0.07862738
+        inWeight: 0.33333334
+        outWeight: 0.093090534
       - serializedVersion: 3
         time: 1.0000207
-        value: 0.065195285
-        inSlope: -0.13011782
-        outSlope: -0.13011782
+        value: 0.06995387
+        inSlope: -0.020542808
+        outSlope: -0.020542808
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0.10607228
+        inWeight: 0.020655056
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
@@ -4154,12 +4153,12 @@ MonoBehaviour:
       - serializedVersion: 3
         time: 2.3283064e-10
         value: 0.0002441755
-        inSlope: 2.6008372
-        outSlope: 2.6008372
+        inSlope: 0.012175514
+        outSlope: 0.012175514
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
-        outWeight: 0.056608133
+        outWeight: 0.4991478
       - serializedVersion: 3
         time: 0.3094976
         value: 0.38423395
@@ -4251,7 +4250,7 @@ MonoBehaviour:
     engineSound: {fileID: 2295528414974366022}
     gearShiftSound: {fileID: 384489639559664422}
     minPitch: 0.2
-    maxPitch: 1.5
+    maxPitch: 1.25
     SkidSound: {fileID: 6079079866598951839}
   gearSpeeds: 03000000080000000d00000012000000
   mechanicalGear: 1
@@ -4278,8 +4277,10 @@ MonoBehaviour:
   characterRagdollPrefab: {fileID: 5862566900047247827, guid: 45bfcc4bdea4c2f42ba1ffe71b58a1f9,
     type: 3}
   characterAnimator: {fileID: 6570755418795714122}
-  impactThreshold: 10
-  IgnoreBottomCollision: 1
+  impactCeiling: 50
+  impactThresholdToFall: 10
+  verticalImpactThreshold: 10
+  ignoreBottomCollision: 1
 --- !u!114 &4931411606849739462
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6716,7 +6717,7 @@ MonoBehaviour:
   m_BindingMode: 5
   m_FollowOffset: {x: 0, y: 0.25, z: -2}
   m_XDamping: 0
-  m_YDamping: 1
+  m_YDamping: 1.5
   m_ZDamping: 0.25
   m_AngularDampingMode: 0
   m_PitchDamping: 2
@@ -7701,10 +7702,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.29
-  m_Height: 1.5379841
+  m_Radius: 0.25482482
+  m_Height: 1.8200394
   m_Direction: 2
-  m_Center: {x: -2.4953606e-38, y: -2.7263033e-25, z: 0.032479644}
+  m_Center: {x: -1.0866677e-37, y: 0.035175204, z: 0.17350727}
 --- !u!1 &8389834781457785588
 GameObject:
   m_ObjectHideFlags: 0

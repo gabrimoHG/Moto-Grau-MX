@@ -4,13 +4,13 @@ using UnityEngine;
 using ArcadeBP_Pro;
 public class Speedometer : Gauge
 {
-    ArcadeBikeControllerPro currentBike;
-
-    // Update is called once per frame
-    void Update()
+    protected override void Start()
     {
-        if (currentBike==null)
-            currentBike = GameManager.instance.GetCurrentBike();
-        TMProContent.text = currentBike.speedKmph.ToString()+" KM/H";
+        base.Start();
+        currentBike = GameManager.instance.GetCurrentBike();
+        currentBike.bikeEvents.onSpeedKmphUpdate += UpdateGauge;
     }
+
+    void UpdateGauge(int speedKmph)=>
+        TMProContent.text = speedKmph.ToString() + " KM/H";
 }

@@ -16,6 +16,7 @@ public class UIManager : MonoBehaviour
     public UiButton_ABP_Pro wheelieButton { private set; get; }
     public UiButton_ABP_Pro stoppieButton { private set; get; }
     public OnFallPopup onFallPopup { private set; get; }
+    public ConditionMeter conditionMeter { private set; get; }
     public CameraAlternationButton cameraAlternation { private set; get; }
     Coroutine popupCoroutine;
     Transform panel;
@@ -32,10 +33,17 @@ public class UIManager : MonoBehaviour
             GetComponent<UiButton_ABP_Pro>();
         handbreakButton= baseContextualUI.GetChild(3).
             GetComponent<UiButton_ABP_Pro>();
-        cameraAlternation = baseContextualUI.GetChild(6).
+        conditionMeter = baseContextualUI.GetChild(5).
+            GetComponent<ConditionMeter>();
+        cameraAlternation = baseContextualUI.GetChild(7).
             GetComponent<CameraAlternationButton>();
         onFallPopup = UnityExtensionsUtilities.
             GetComponentInChildrenIncludingInactive<OnFallPopup>(transform.GetChild(0), 1);
+    }
+
+    private void Start()
+    {
+        GameManager.instance.bikeAdditionalPhysics.onDislodged += EnableOnFallPopup;
     }
 
     public void EnableOnFallPopup()

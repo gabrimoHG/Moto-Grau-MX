@@ -47,8 +47,8 @@ public class WheelieRating : MonoBehaviour
         float endTime = Time.fixedTime;
         executionTime = endTime - startTime;
         averageAngle = wheelieAngles / wheelieCycles;
-        averageAngle = GeneralUtilities.
-            ConvertAngleToFirstHalfStandard(averageAngle);
+        /*averageAngle = GeneralUtilities.
+            ConvertAngleToFirstHalfStandard(averageAngle);*/
         averageSpeed = speedsRecorded / wheelieCycles;
         hasPerformed = true;
     }
@@ -57,9 +57,9 @@ public class WheelieRating : MonoBehaviour
     {
         if (hasSuceeded && hasPerformed)
         {
-            Debug.Log("Wheelie time: " + executionTime + " seconds.");
-            Debug.Log("Wheelie average angle: " + averageAngle);
-            Debug.Log("Wheelie average speed: " + averageSpeed);
+            //Debug.Log("Wheelie time: " + executionTime + " seconds.");
+            //Debug.Log("Wheelie average angle: " + averageAngle);
+            //Debug.Log("Wheelie average speed: " + averageSpeed);
             hasPerformed = false;
             bikeController.bikeEvents.onWheelieFinish -= ShowStatistics;
             bikeController.bikeEvents.onWheelieStart += TriggerWheelieStatistics;

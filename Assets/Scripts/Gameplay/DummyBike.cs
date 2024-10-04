@@ -32,7 +32,7 @@ public class DummyBike : MonoBehaviour
         {
             elapsedTime += Time.deltaTime;
             float t = elapsedTime / duration;
-            Debug.Log("Entrou!");
+            //Debug.Log("Entrou!");
             // Lerp the pitch and volume towards the over-rev max values
             engineSound.pitch = Mathf.Lerp(currentPitch, (currentPitch + 1), t);
             if (currentVolume != 1)
@@ -55,8 +55,8 @@ public class DummyBike : MonoBehaviour
         var currentPitch = engineSound.pitch;
         var currentVolume = engineSound.volume;
         skidSound.Play();
-        Debug.Log("Skid sound volume " + skidSound.volume);
-        Debug.Log("Skid sound pitch " + skidSound.pitch);
+        //Debug.Log("Skid sound volume " + skidSound.volume);
+        //Debug.Log("Skid sound pitch " + skidSound.pitch);
         while (elapsedTime < duration)
         {
             elapsedTime += Time.deltaTime;

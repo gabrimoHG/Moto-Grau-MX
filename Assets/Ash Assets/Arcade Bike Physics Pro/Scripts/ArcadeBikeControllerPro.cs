@@ -14,22 +14,22 @@ namespace ArcadeBP_Pro
         public class BikeInput
         {
             [Tooltip("The float to accelerate the bike.")]
-            public float accelerate = 0;
+            public float accelerate;
 
             [Tooltip("The float to reverse the bike.")]
-            public float reverse = 0;
+            public float reverse;
 
             [Tooltip("The float to apply the hand brake.")]
-            public float handBrake = 0;
+            public float handBrake;
 
             [Tooltip("The float to steer the bike left.")]
-            public float steeringLeft = 0;
+            public float steeringLeft;
 
             [Tooltip("The float to steer the bike right.")]
-            public float steeringRight = 0;
+            public float steeringRight;
 
             [Tooltip("The float to perform a wheelie.")]
-            public float wheelie = 0;
+            public float wheelie;
 
         }
 
@@ -104,22 +104,22 @@ namespace ArcadeBP_Pro
         public class BikeGeometry
         {
             [Tooltip("Radius of the front wheel. Affects the ground contact area and suspension calculations.")]
-            public float frontWheelRadius = 0.5f;
+            public float frontWheelRadius;
 
             [Tooltip("Width of the front wheel.")]
-            public float frontWheelWidth = 0.5f;
+            public float frontWheelWidth;
 
             [Tooltip("Radius of the rear wheel.")]
-            public float rearWheelRadius = 0.5f;
+            public float rearWheelRadius;
 
             [Tooltip("Width of the rear wheel.")]
-            public float rearWheelWidth = 0.5f;
+            public float rearWheelWidth;
 
             [Tooltip("Angle of the front wheel relative to the bike’s body. Affects the bike’s suspension and wheel placement calculations.")]
-            public float frontWheelAngle = 15f;
+            public float frontWheelAngle;
 
             [Tooltip("Angle of the rear wheel relative to the bike’s body. Similar to the front wheel angle but for the rear wheel.")]
-            public float rearWheelAngle = 0f;
+            public float rearWheelAngle;
         }
         public BikeGeometry bikeGeometry;
 
@@ -128,16 +128,16 @@ namespace ArcadeBP_Pro
         public class BikeSuspension
         {
             [Tooltip("The force exerted by the bike’s suspension springs. Higher values result in a stiffer suspension.")]
-            public float springForce = 100;
+            public float springForce;
 
             [Tooltip("The force exerted by the dampers to absorb shocks. Higher values result in less oscillation.")]
-            public float damperForce = 10;
+            public float damperForce;
 
             [Tooltip("A factor to adjust how well the bike sticks to the ground.")]
-            public float groundStickFactor = 0.2f;
+            public float groundStickFactor;
 
             [Tooltip("Maximum allowable compression for the suspension. Prevents the bike from bottoming out.")]
-            public float maxCompression = 0.5f;
+            public float maxCompression;
         }
         public BikeSuspension bikeSuspension;
 
@@ -149,73 +149,73 @@ namespace ArcadeBP_Pro
             public LayerMask drivableLayerMask = ~0;
 
             [Tooltip("Maximum speed the bike can reach in the forward direction.")]
-            public float maxSpeed = 80;
+            public float maxSpeed;
 
             [Tooltip("Maximum speed the bike can reach in reverse.")]
-            public float reverseMaxSpeed = 3;
+            public float reverseMaxSpeed;
 
             [Tooltip("Acceleration rate of the bike.")]
-            public float acceleration = 10;
+            public float acceleration;
 
             [Tooltip("Acceleration rate when the bike is in reverse.")]
-            public float reverseAcceleration = 5;
+            public float reverseAcceleration;
 
             [Tooltip("Rate at which the bike decelerates when opposite button(to the bike move direction) is pressed. Basically brake amount. How fast the bike will reach 0 speed.")]
-            public float deceleration = 40;
+            public float deceleration;
 
             [Tooltip("Deceleration rate when the hand brake is applied.")]
-            public float handBrakeDeceleration = 10;
+            public float handBrakeDeceleration;
 
             [Tooltip("Maximum angle the bike handle can turn.")]
-            public float maxTurnAngle = 20;
+            public float maxTurnAngle;
 
             [Tooltip("Whether to use smooth turning. Sometimes you don't want instant left to right turning. It delays how fast we can turn the bike by inputs.")]
-            public bool useLerpTurning = false;
+            public bool useLerpTurning;
 
             [Tooltip("Speed of smooth turning if `useLerpTurning` is true.")]
-            public float turnLerpSpeed = 5;
+            public float turnLerpSpeed;
 
             [Tooltip("Speed of the steering animation.")]
-            public float steeringAnimationSpeed = 5;
+            public float steeringAnimationSpeed;
 
             [Tooltip("Whether the bike can steer while in the air (not grounded).")]
-            public bool canSteerInAir = false;
+            public bool canSteerInAir;
 
             [Tooltip("Whether the bike can lean while in the air (not grounded).")]
-            public bool canLeanInAir = false;
+            public bool canLeanInAir;
 
             [Tooltip("Speed of turning while in the air if `canSteerInAir` is true.")]
-            public float turnSpeedInAir = 50;
+            public float turnSpeedInAir;
 
             [Tooltip("Maximum lean angle for the bike.")]
-            public float maxLeanAngle = 40;
+            public float maxLeanAngle;
 
             [Tooltip("Speed of the leaning animation.")]
-            public float leaningAnimationSpeed = 5;
+            public float leaningAnimationSpeed;
 
             [Tooltip("Coefficient for calculating friction force (sideways force).")]
-            public float frictionCoefficient = 0.5f;
+            public float frictionCoefficient;
 
             [Tooltip("Factor to adjust friction during drifts (when handbrake is applied).")]
-            public float driftFrictionFactor = 0.5f;
+            public float driftFrictionFactor;
 
             [Tooltip("Factor to adjust turning during drifts (when handbrake is applied).")]
-            public float driftTurnFactor = 2f;
+            public float driftTurnFactor;
 
             [Tooltip("Resistance applied to the bike to simulate rolling friction. It determines how fast bike will come to rest (0 speed) if acceleration/deceleration input is not applied.")]
-            public float rollingResistance = 1;
+            public float rollingResistance;
 
             [Tooltip("Gravity force applied to the bike.")]
-            public float gravity = 9.81f;
+            public float gravity;
 
             [Tooltip("Speed of rotation during a burnout.")]
-            public float burnoutRotationSpeed = 10f;
+            public float burnoutRotationSpeed;
 
             [Tooltip("Smoothness of the burnout transition.")]
-            public float burnoutSmoothness = 1f;
+            public float burnoutSmoothness;
 
             [Tooltip("Maximum angle for performing a wheelie.")]
-            public float wheelieAngle = 30;
+            public float wheelieAngle;
 
             public float wheelieAngleLimit;
 
@@ -223,16 +223,14 @@ namespace ArcadeBP_Pro
             public float wheelieMaxSpeed;
             public float minWheelieDropSpeed;
 
-            public float wheelieWeight;
-
             [Tooltip("Speed of the wheelie animation.")]
-            public float wheelieAnimationSpeed = 3f;
+            public float wheelieAnimationSpeed;
 
             [Tooltip("Speed of aligning the rotator when the bike is on the ground. How fast bike align with the ground surface.")]
-            public float alignRotatorSpeed_Ground = 10;
+            public float alignRotatorSpeed_Ground;
 
             [Tooltip("Speed of aligning the rotator when the bike is in the air. How fast bike align with the world up axis.")]
-            public float alignRotatorSpeed_Air = 5f;
+            public float alignRotatorSpeed_Air;
         }
         public BikeSettings bikeSettings;
 
@@ -250,7 +248,7 @@ namespace ArcadeBP_Pro
             public AnimationCurve steeringCurve;
 
             [Tooltip("Adjusts friction based on speed. X-axis represents sideways speed, Y-axis represents friction multiplier. Example: Curve from (0, 1) to (1, 0.1) means high friction at low sideways speed (meaning when bike is not sliding sideways), decreasing to low friction at high sideways speed (meaning when bike is sliding sideways).")]
-            public AnimationCurve frictionCurve = new AnimationCurve(new Keyframe(0, 1), new Keyframe(0.1f, 0.5f), new Keyframe(1, 0.1f));
+            public AnimationCurve frictionCurve;
 
             [Tooltip("Adjusts the lean angle based on speed. X-axis represents speed, Y-axis represents lean angle multiplier. Example: Curve from (0, 0.2) to (1, 1) means minimal lean at low speed, increasing to maximum lean at high speed.")]
             public AnimationCurve leanCurve;
@@ -313,6 +311,17 @@ namespace ArcadeBP_Pro
             public event Action<bool> onWheelieFinish = delegate { };
             public void RaiseOnWheelieFinish(bool hasSucceeded)=>
                 onWheelieFinish(hasSucceeded);
+            public event Action onBikeBroken = delegate { };
+            public void RaiseOnBikeBroken()=>onBikeBroken();
+            public event Action onBikeRepaired = delegate { };
+            public void RaiseOnBikeRepaired()=>onBikeRepaired();
+            public event Action<int> onConditionUpdate = delegate { };
+            public void RaiseOnConditionUpdate(int bikeCondition)=>
+                onConditionUpdate(bikeCondition);
+            public event Action<int> onSpeedKmphUpdate = delegate { };
+            public void RaiseOnSpeedKmphUpdate(int speedKmph)=>
+                onSpeedKmphUpdate(speedKmph);
+
         }
         public BikeEvents bikeEvents;
 
@@ -338,6 +347,7 @@ namespace ArcadeBP_Pro
         public bool isAccelerating{ get; private set; }
         public bool isReversing{ get; private set; }
         public bool isDoingWheelie { get; private set; } = false;
+        public bool isDoingStoppie { get; private set; } = false;
         public bool canAccelerate{ get; private set; } = true;
         public void SetCanAccelerate(bool canAccelerate) =>
             this.canAccelerate=canAccelerate;
@@ -355,6 +365,9 @@ namespace ArcadeBP_Pro
         public int speedKmph { get; private set; }
         public float speedLimit { get; private set; }
         public float wheelieAngle { get; private set; }
+        public float stoppieAngle { get; private set; }
+
+        public int bikeCondition { get; private set; }
         private ParticleSystem tireSmoke_ps;
 
         #endregion
@@ -401,6 +414,9 @@ namespace ArcadeBP_Pro
 
         private void Start()
         {
+            bikeCondition = 100;
+            UIManager.instance.conditionMeter.UpdateGauge(bikeCondition);
+
             bikeReferences.bikeRb.useGravity = false;
             wasGrounded = bikeIsGrounded;
 
@@ -506,11 +522,11 @@ namespace ArcadeBP_Pro
             UpdateGearShift();
             //UnityEngine.Debug.Log(mechanicalGear);
             speedKmph = Mathf.RoundToInt(localBikeVelocity.magnitude * 3.6f);
+            bikeEvents.RaiseOnSpeedKmphUpdate(speedKmph);
 
         }
 
         #endregion
-
 
         #region Gravity
 
@@ -541,7 +557,8 @@ namespace ArcadeBP_Pro
             Vector3 raycastPosition = wheelParent.position + wheelParent.up * radius;
             Vector3 raycastDirection = -wheelParent.up;
 
-            if (Physics.Raycast(raycastPosition, raycastDirection, out hit, maxRaycastDistance, bikeSettings.drivableLayerMask, QueryTriggerInteraction.Ignore))
+            if (Physics.Raycast(raycastPosition, raycastDirection, out hit, maxRaycastDistance,
+                bikeSettings.drivableLayerMask, QueryTriggerInteraction.Ignore))
             {
                 float h = radius * (1 / Mathf.Cos(wheelAngle * Mathf.Deg2Rad));
                 float localOffset = hit.distance - h - radius;
@@ -1145,10 +1162,16 @@ namespace ArcadeBP_Pro
                     float wheelieEase = bikeCurves.wheelieEasinessCurve.Evaluate(normalizedSpeed);
                     float wheelieFactor = Mathf.Clamp01(-bikeInput.wheelie) * wheelieEase;
                     //UnityEngine.Debug.Log($"Speed: {localBikeVelocity.magnitude}, WheelieEase: {wheelieEase}");
-                    float engineFactor = Mathf.InverseLerp(0.5f, 1f, bikeAudio.engineSound.volume);
-                    float targetAngle = Mathf.Lerp(0, -bikeSettings.wheelieAngle, engineFactor * wheelieFactor);
+                    float engineFactor = 0;
+                    if(bikeReferences.cameraController.isFirstPerson)
+                        engineFactor = Mathf.InverseLerp(0.5f, 1f, bikeAudio.engineSound.volume*2);
+                    else
+                        engineFactor = Mathf.InverseLerp(0.5f, 1f, bikeAudio.engineSound.volume);
+                    float targetAngle = Mathf.Lerp(0, -bikeSettings.wheelieAngle, engineFactor *
+                        wheelieFactor);
                     float currentAngle = bikeReferences.wheelieTransform.localRotation.eulerAngles.x;
-                    float newAngle = Mathf.LerpAngle(currentAngle, targetAngle, Time.deltaTime * bikeSettings.wheelieAnimationSpeed);
+                    float newAngle = Mathf.LerpAngle(currentAngle, targetAngle, Time.deltaTime *
+                        bikeSettings.wheelieAnimationSpeed);
 
                     // Apply the new angle
                     bikeReferences.wheelieTransform.localRotation = Quaternion.Euler(newAngle, 0, 0);
@@ -1176,7 +1199,6 @@ namespace ArcadeBP_Pro
                     float currentAngle = bikeReferences.wheelieTransform.localRotation.eulerAngles.x;
                     if (currentAngle > 180)
                         currentAngle -= 360; // Convert to range -180 to 180
-
                     float currentAngleFactor = Mathf.Clamp01(Mathf.Abs(currentAngle) /
                         bikeSettings.wheelieAngle);
                     
@@ -1197,21 +1219,20 @@ namespace ArcadeBP_Pro
                 }
                 if (wheelieAngle > bikeSettings.wheelieAngleLimit)
                 {
-                    Debug.Log(wheelieAngle);
+                    //Debug.Log("Angulo de "+ wheelieAngle);
+                    //Debug.Log("Limite de " + bikeSettings.wheelieAngleLimit);
                     Debug.Log("Caiu por ângulo!");
                     bikeReferences.additionalPhysics.DislodgePlayer(isDoingWheelie);
                     bikeEvents.RaiseOnWheelieFinish(false);
-                    UIManager.instance.EnableOnFallPopup();
                     isDoingWheelie = false;
                 }
                 if (localBikeVelocity.magnitude > bikeSettings.wheelieMaxSpeed &&
                     wheelieAngle > (bikeSettings.wheelieAngleLimit/3))
                 {
-                    Debug.Log(wheelieAngle);
+                    //Debug.Log(wheelieAngle);
                     Debug.Log("Caiu por velocidade!");
                     bikeReferences.additionalPhysics.DislodgePlayer(isDoingWheelie);
                     bikeEvents.RaiseOnWheelieFinish(false);
-                    UIManager.instance.EnableOnFallPopup();
                     isDoingWheelie = false;
                 }
             }
@@ -1322,6 +1343,7 @@ namespace ArcadeBP_Pro
         void UpdateEngineSound()
         {
             float bikeSpeed = localBikeVelocity.magnitude;
+
             //engineSound.pitch = Mathf.Lerp(minPitch, maxPitch, Mathf.Abs(speed + (verticalInput + angularSpeed/10) * 20) / maxspeed);
             float enginePitch = Mathf.Lerp(bikeAudio.minPitch, bikeAudio.maxPitch, Mathf.Abs(bikeSpeed) /
                 gearSpeeds[Mathf.Clamp(mechanicalGear, 0, gearSpeeds.Length - 1)]);
@@ -1346,17 +1368,30 @@ namespace ArcadeBP_Pro
                 }
                 else
                 {
-                    bikeAudio.engineSound.pitch = Mathf.MoveTowards(bikeAudio.engineSound.pitch, enginePitch, 3f * Time.deltaTime);
+                    bikeAudio.engineSound.pitch = Mathf.MoveTowards(bikeAudio.engineSound.pitch,
+                        enginePitch, 3f * Time.deltaTime);
                 }
+            }
+            var maxVolume = 0f;
+            var minVolume = 0f;
+            if (bikeReferences.cameraController.isFirstPerson)
+            {
+                maxVolume = .5f;
+                minVolume = .25f;
+            }
+            else// if (maxVolume != 1)
+            {
+                maxVolume = 1;
+                minVolume = .5f;
             }
 
             if (bikeInput.accelerate > 0 || bikeInput.reverse > 0)
             {
-                bikeAudio.engineSound.volume = Mathf.MoveTowards(bikeAudio.engineSound.volume, 1, 0.01f);
+                bikeAudio.engineSound.volume = Mathf.MoveTowards(bikeAudio.engineSound.volume, maxVolume, 0.01f);
             }
             else
             {
-                bikeAudio.engineSound.volume = Mathf.MoveTowards(bikeAudio.engineSound.volume, 0.5f, 0.01f);
+                bikeAudio.engineSound.volume = Mathf.MoveTowards(bikeAudio.engineSound.volume, minVolume, 0.01f);
             }
         }
 
@@ -1487,6 +1522,30 @@ namespace ArcadeBP_Pro
             bikeInput.steeringLeft = steer;
             bikeInput.steeringRight = steer;
             bikeInput.wheelie = wheelie;
+        }
+
+        public void DecreaseCondition(int damage)
+        {
+            if((bikeCondition-damage)>=0)
+                bikeCondition-=damage;
+            else
+                bikeCondition=0;
+
+            if (bikeCondition == 0)
+                bikeEvents.RaiseOnBikeBroken();
+            bikeEvents.RaiseOnConditionUpdate(bikeCondition);
+        }
+
+        public void IncreaseCondition(int repair)
+        {
+            if ((bikeCondition + repair)<= 100)
+                bikeCondition += repair;
+            else
+                bikeCondition = 100;
+
+            if (bikeCondition == 0)
+                bikeEvents.RaiseOnBikeRepaired();
+            bikeEvents.RaiseOnConditionUpdate(bikeCondition);
         }
 
 

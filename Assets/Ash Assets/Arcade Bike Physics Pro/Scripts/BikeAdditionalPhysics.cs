@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using ArcadeBP_Pro;
 using System.Threading;
+using UnityEditor.Experimental.GraphView;
 
 public class BikeAdditionalPhysics : MonoBehaviour
 {
@@ -21,17 +22,22 @@ public class BikeAdditionalPhysics : MonoBehaviour
     [Tooltip("Animator component of the animated character.")]
     public Animator characterAnimator;
 
+    public int impactCeiling;
     [Tooltip("Threshold of impact force to activate ragdoll.")]
-    public float impactThreshold = 10f;
+    public float impactThresholdToFall = 10f;
+    
+    float crashImpact;
+    public float verticalImpactThreshold = 10;
 
     [Tooltip("Ignore collisions with the bottom part of the bike collider.")]
-    public bool IgnoreBottomCollision = true;
+    public bool ignoreBottomCollision = true;
 
     public event Action onDislodged=delegate { };
 
     private Rigidbody bikeRigidbody;
     private bool isRagdollActivated = false;
     private GameObject bikeRagdollInstance;
+    float damage;
     public Transform GetRagdollBikeTransform() { return bikeRagdollInstance.transform; }
     public GameObject characterRagdollInstance { get; private set; }
     private Collider bikeCollider;
@@ -48,27 +54,80 @@ public class BikeAdditionalPhysics : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        if (isRagdollActivated) return;
+        if (isRagdollActivated) 
+        {
+            crashImpact = 0;
+            return; 
+        }
 
-        Vector3 localContactPoint = bikeController.bikeReferences.leanTransform.InverseTransformPoint(collision.contacts[0].point);
-        Vector3 bikeCenter = bikeController.bikeReferences.leanTransform.InverseTransformPoint(bikeCollider.bounds.center);
+        crashImpact = collision.impulse.magnitude / bikeRigidbody.mass;
+        var wheelieTransform = bikeController.bikeReferences.wheelieTransform;
+        //Debug.Log("Impact " + crashImpact);
+        Debug.Break();
+        if (!bikeController.isDoingWheelie &&
+            !bikeController.isDoingStoppie)
+        {
+            Debug.Log("Não deveria... ");
+            float clampedImpact = Mathf.Clamp(crashImpact, 0, impactCeiling);
+            damage = Mathf.Lerp(0, 100, clampedImpact / impactCeiling);
+            
 
-        if (IgnoreBottomCollision)
+            var crashOutputDegree = Mathf.Lerp(0, 35, (crashImpact - 2) / (impactThresholdToFall - 2));
+
+            wheelieTransform.localRotation = Quaternion.Euler(crashOutputDegree, 0, 0);
+        }
+        else if (bikeController.isDoingWheelie)
+        {
+            float clampedImpact = Mathf.Clamp(crashImpact, 0, impactCeiling);
+            damage = Mathf.Lerp(0, 40, clampedImpact / (impactCeiling/2));
+
+            Debug.Log("Wheelie angle "+ bikeController.wheelieAngle);
+            float crashOutputDegree = 0;
+
+            if (bikeController.wheelieAngle <= 15) 
+                crashOutputDegree = Mathf.Lerp (0, -25, crashImpact / bikeController.wheelieAngle);
+            else
+                crashOutputDegree = Mathf.Lerp(0, 25, crashImpact / bikeController.wheelieAngle);
+
+            Debug.Log("Degree on wheelie after crash " + crashOutputDegree);
+            wheelieTransform.localRotation = Quaternion.Euler(crashOutputDegree, 0, 0);
+
+            
+        }
+        bikeController.DecreaseCondition((int)damage);
+        if (crashImpact > impactThresholdToFall)
+            DislodgePlayer();
+        return;
+
+        Vector3 localContactPoint = bikeController.bikeReferences.
+            leanTransform.InverseTransformPoint(collision.contacts[0].point);
+        Vector3 bikeCenter = bikeController.bikeReferences.
+            leanTransform.InverseTransformPoint(bikeCollider.bounds.center);
+        //Debug.Log("Local contact point " + localContactPoint);
+        //Debug.Log("Bike center " + bikeCenter);
+        //Debug.Log("Collision contacts size " + collision.contacts.Length);
+        if (ignoreBottomCollision)
         {
             if (localContactPoint.y > bikeCenter.y)
             {
-                if (collision.impulse.magnitude / bikeRigidbody.mass > impactThreshold)
+                //Debug.Log("Vertical collision impact " + collision.impulse.magnitude / bikeRigidbody.mass);
+                //Debug.Log("Vertical impact threshold " + verticalImpactThreshold);
+                if (collision.impulse.magnitude / bikeRigidbody.mass > verticalImpactThreshold)
+                {
                     DislodgePlayer();
+                }
             }
         }
         else
         {
-            if (collision.impulse.magnitude / bikeRigidbody.mass > impactThreshold)
+            Debug.Log("Collision impact " + collision.impulse.magnitude / bikeRigidbody.mass);
+            Debug.Log("Impact threshold " + impactThresholdToFall);
+            if (collision.impulse.magnitude / bikeRigidbody.mass > impactThresholdToFall)
                 DislodgePlayer();
         }
     }
 
-    public void DislodgePlayer(bool isWheelie = false, bool isStoppie = false)
+    public void DislodgePlayer(bool isDoingWheelie = false, bool isStoppie = false)
     {
         isRagdollActivated = true;
 
@@ -102,7 +161,7 @@ public class BikeAdditionalPhysics : MonoBehaviour
 
         foreach (Rigidbody rb in bikeRagdollRigidbodies)
         {
-            if (isWheelie)
+            if (isDoingWheelie)
                 rb.velocity = bikeVelocity*2;
             else
                 rb.velocity = bikeVelocity;
@@ -111,7 +170,7 @@ public class BikeAdditionalPhysics : MonoBehaviour
 
         foreach (Rigidbody rb in characterRagdollRigidbodies)
         {
-            if (!isWheelie)
+            if (!isDoingWheelie)
             {
                 rb.velocity = bikeVelocity;
                 rb.angularVelocity = bikeAngularVelocity;
@@ -124,10 +183,22 @@ public class BikeAdditionalPhysics : MonoBehaviour
             }
         }
 
-        // Deactivate the original bike
-        gameObject.SetActive(false);
+        if (isDoingWheelie)
+        {
+            var wheelieMaxSpeed = bikeController.bikeSettings.wheelieMaxSpeed;
+            float clampedSpeed = Mathf.Clamp(bikeController.speedKmph,
+                0, (wheelieMaxSpeed * 3.6f));
+            damage = Mathf.Lerp(0, 100, clampedSpeed / (wheelieMaxSpeed * 3.6f));
+        }
+        else
+        {
+            damage = Mathf.Lerp(0, 100, bikeController.speedKmph/
+                bikeController.stoppieAngle);
+        }
 
-        // Invoke the event
+
+        bikeController.DecreaseCondition((int)damage);
+        gameObject.SetActive(false);
         onDislodged();
     }
 

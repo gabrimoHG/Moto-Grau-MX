@@ -133,16 +133,26 @@ namespace HistoricGamesUtils
 
         public static float ConvertAngleToFirstHalfStandard(float angle)
         {
+            //Debug.Log(angle + " % 360 = ");
             angle = angle % 360;
+            //Debug.Log(angle);
 
             if (angle < 0)
+            {
+                //Debug.Log(angle + " += 360 = ");
                 angle += 360;
-            else
-                angle -= 360;
+                //Debug.Log(angle);
+            }
 
             if (angle > 180)
+            {
+                //Debug.Log(angle + " -= 360");
                 angle -= 360;
+                //Debug.Log(angle);
+            }
             angle = Mathf.Abs(angle);
+            //Debug.Log("--------------------------");
+
             return angle;
         }
     }
