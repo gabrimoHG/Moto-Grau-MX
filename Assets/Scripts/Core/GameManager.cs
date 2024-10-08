@@ -56,10 +56,14 @@ public class GameManager : MonoBehaviour
     }
 
     public void ResetBike()
-    { 
+    {
+
         currentBikeController.bikeReferences.bikeRb.velocity = Vector3.zero;
         currentBikeController.bikeReferences.bikeRb.angularVelocity = Vector3.zero;
         currentBikeController.bikeReferences.rotator.transform.localRotation = Quaternion.identity;
+        currentBikeController.bikeReferences.wheelieTransform.localRotation = Quaternion.identity;
+        currentBikeController.SetIsDoingStoppie(false);
+        currentBikeController.SetIsDoingWheelie(false);
         currentBikeController.transform.position = spawnPosition;
 
         bikeAdditionalPhysics.CleanRagdolls();
@@ -67,6 +71,7 @@ public class GameManager : MonoBehaviour
         currentBikeController.SetCanAccelerate(true);
         currentBikeController.bikeAudio.engineSound.pitch = currentBikeController.bikeAudio.minPitch;
         currentBikeController.bikeReferences.cameraController.gameObject.SetActive(true);
+
         onBikeReset();
     }
 

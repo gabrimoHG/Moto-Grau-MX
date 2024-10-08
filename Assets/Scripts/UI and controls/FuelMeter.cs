@@ -4,9 +4,13 @@ using UnityEngine;
 
 public class FuelMeter : Gauge
 {
-    // Start is called before the first frame update
     protected override void Start()
     {
-        
+        base.Start();
+        currentBike = GameManager.instance.GetCurrentBike();
+        currentBike.bikeEvents.onFuelUpdate += UpdateGauge;
     }
+
+    public void UpdateGauge(int bikeFuel) =>
+        TMProContent.text = bikeFuel.ToString();
 }

@@ -59,11 +59,11 @@ namespace ArcadeBP_Pro
 
             if (GUILayout.Button("Create Bike"))
             {
-                createBike();
+                CreateBike();
             }
         }
 
-        private void createBike()
+        private void CreateBike()
         {
             NewBike = Instantiate(preset, bodyMesh.bounds.center, BikeParent.rotation);
             NewBike.name = "ABP_Pro_" + BikeParent.name;
@@ -118,7 +118,8 @@ namespace ArcadeBP_Pro
 
             // adjust collider
             bikeRefs.collider.transform.position = bodyMesh.bounds.center;
-            bikeRefs.collider.transform.localPosition = new Vector3(0, bikeRefs.collider.transform.localPosition.y, bikeRefs.collider.transform.localPosition.z);
+            bikeRefs.collider.transform.localPosition = new Vector3(0,
+                bikeRefs.collider.transform.localPosition.y, bikeRefs.collider.transform.localPosition.z);
             bikeRefs.collider.center = Vector3.zero;
             bikeRefs.collider.height = bodyMesh.bounds.extents.z * 2;
             bikeRefs.collider.radius = bodyMesh.bounds.extents.x;

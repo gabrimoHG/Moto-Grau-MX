@@ -7,16 +7,18 @@ public class DummyBike : MonoBehaviour
 {
     AudioSource engineSound;
     AudioSource skidSound;
+    AudioSource crashSound;
     // Start is called before the first frame update
     void Awake()
     {
         engineSound = transform.GetChild(4).GetChild(0).GetComponent<AudioSource>();
         skidSound = transform.GetChild(4).GetChild(1).GetComponent<AudioSource>();
+        crashSound = transform.GetChild(4).GetChild(2).GetComponent<AudioSource>();
     }
 
     private void OnEnable()
     {
-        StartCoroutine(OverRev(.5f));
+        StartCoroutine(OverRev(.25f));
     }
 
     private IEnumerator OverRev(float duration)
@@ -46,10 +48,11 @@ public class DummyBike : MonoBehaviour
             yield return null;
         }
 
-        StartCoroutine(SkidAndEngineIdle(duration));
+        StartCoroutine(Skid(duration));
+        StartCoroutine(CrashAndEngineIdle());
     }
 
-    IEnumerator SkidAndEngineIdle(float duration)
+    IEnumerator Skid(float duration)
     {
         float elapsedTime = 0f;
         var currentPitch = engineSound.pitch;
@@ -66,6 +69,15 @@ public class DummyBike : MonoBehaviour
             yield return null;
         }
         skidSound.Stop();
+    }
+
+    IEnumerator CrashAndEngineIdle()
+    {
+        var currentPitch = engineSound.pitch;
+        var currentVolume = engineSound.volume;
+        crashSound.Play();
+        while (crashSound.isPlaying)
+            yield return null;
     }
 
 }

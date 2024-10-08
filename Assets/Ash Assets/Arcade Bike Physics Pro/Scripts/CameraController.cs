@@ -3,6 +3,8 @@ using Cinemachine;
 using HistoricGamesUtils;
 using Unity.VisualScripting;
 using Unity.Mathematics;
+using TMPro.Examples;
+using System.Collections;
 
 
 namespace ArcadeBP_Pro
@@ -50,7 +52,7 @@ namespace ArcadeBP_Pro
         CinemachineTransposer transposer;
         private bool isShaking = false;
         bool isManuallyMoving, isRotated;
-
+        BikeAdditionalPhysics bikeAdditionalPhysics;
         Transform firstPersonFollowTarget;
         Transform[] thirdPersonFollowTargets;
         Transform[] thirdPersonLookAtTargets;
@@ -72,7 +74,9 @@ namespace ArcadeBP_Pro
             thirdPersonFollowTargets = new Transform[cameras.Length-1];
             thirdPersonLookAtTargets = new Transform[cameras.Length-1];
             speedThresholdForShake = bikeController.bikeSettings.maxSpeed * .75f;
-
+            bikeAdditionalPhysics = GameManager.instance.GetCurrentBike()
+                .GetComponent<BikeAdditionalPhysics>();
+            bikeAdditionalPhysics.onDislodged += SetCameraTargetToRagdoll;
 
             for (int i = 0; i < cameras.Length; i++)
             {
@@ -207,6 +211,11 @@ namespace ArcadeBP_Pro
                 {
                     cameras[i].Follow = thirdPersonFollowTargets[i];
                     cameras[i].LookAt = thirdPersonLookAtTargets[i];
+                    /*var transposer = cameras[currentCameraIndex].
+                        GetCinemachineComponent<CinemachineTransposer>();
+                    var newOffset = new Vector3(transposer.m_FollowOffset.x,
+                        transposer.m_FollowOffset.y, transposer.m_FollowOffset.z - 1);
+                    transposer.m_FollowOffset = newOffset;*/
                 }
                 else
                 {
@@ -244,10 +253,10 @@ namespace ArcadeBP_Pro
                     reversePos = new Vector3(0, standardY, thirdCamReverseZOffset);
                     if (!isRotated)
                     {
-                        Quaternion firstPersonRotation = Quaternion.Euler(target.rotation.eulerAngles.x,
-                            120, target.rotation.eulerAngles.z);
+                        Quaternion firstPersonRotation = Quaternion.Euler(target.localRotation.eulerAngles.x,
+                            150, target.localRotation.eulerAngles.z);
                         StartCoroutine(InterpolationUtilities.RotateToTargetLinearly(
-                            target, target.rotation, firstPersonRotation, .4f));
+                            target, target.localRotation, firstPersonRotation, .4f, null, true));
                         isRotated = true;
                     }
                 }
@@ -271,10 +280,10 @@ namespace ArcadeBP_Pro
                     reversePos = new Vector3(0, standardY, thirdCamStandardZOffset);
                     if (isRotated)
                     {
-                        Quaternion firstPersonRotation = Quaternion.Euler(target.rotation.eulerAngles.x,
-                            -90, target.rotation.eulerAngles.z);
+                        Quaternion firstPersonRotation = Quaternion.Euler(target.localRotation.eulerAngles.x,
+                            0, target.localRotation.eulerAngles.z);
                         StartCoroutine(InterpolationUtilities.RotateToTargetLinearly(
-                            target, target.rotation, firstPersonRotation, .4f));
+                            target, target.rotation, firstPersonRotation, .4f, null, true));
                         isRotated = false;
                     }
                 }
@@ -289,6 +298,37 @@ namespace ArcadeBP_Pro
             isManuallyMoving = !isManuallyMoving;
             //Debug.Log("False by movement finish!");
         }
+
+        public void SetCameraTargetToRagdoll()
+        {
+            var targetTransform = transform;
+            var ragdollInstance = bikeAdditionalPhysics.characterRagdollInstance;
+            if (currentCameraIndex != 2)
+            {
+                targetTransform = ragdollInstance.GetComponent<Animator>().
+                    GetBoneTransform(HumanBodyBones.UpperChest);
+                /*var transposer = cameras[currentCameraIndex].
+                    GetCinemachineComponent<CinemachineTransposer>();
+                var newOffset = new Vector3(transposer.m_FollowOffset.x,
+                    transposer.m_FollowOffset.y, transposer.m_FollowOffset.z + 1);
+                transposer.m_FollowOffset = newOffset;*/
+                StartCoroutine(WaitAndCleanTarget(transposer));
+            }
+            else
+            {
+                targetTransform = ragdollInstance.GetComponent<Animator>().
+                    GetBoneTransform(HumanBodyBones.Head);
+            }
+            SetCameratarget(targetTransform, targetTransform);
+        }
+
+        IEnumerator WaitAndCleanTarget(CinemachineTransposer transposer)
+        {
+            yield return new WaitForSeconds(1.5f);
+            cameras[currentCameraIndex].Follow = null;
+            cameras[currentCameraIndex].LookAt = null;
+        }
+
         private string RemovePrefix(string originalName, string prefix)
         {
             if (originalName.StartsWith(prefix))

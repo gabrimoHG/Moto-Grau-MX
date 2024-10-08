@@ -4,6 +4,7 @@ using UnityEngine;
 using HistoricGamesUtils;
 using System.Linq.Expressions;
 using ArcadeBP_Pro;
+using UnityEngine.Rendering;
 
 public class UIManager : MonoBehaviour
 {
@@ -17,7 +18,10 @@ public class UIManager : MonoBehaviour
     public UiButton_ABP_Pro stoppieButton { private set; get; }
     public OnFallPopup onFallPopup { private set; get; }
     public ConditionMeter conditionMeter { private set; get; }
+    public FuelMeter fuelMeter { private set; get; }
     public CameraAlternationButton cameraAlternation { private set; get; }
+
+    public ResetBikeButton resetBikeButton { private set; get; }
     Coroutine popupCoroutine;
     Transform panel;
     private void Awake()
@@ -35,8 +39,12 @@ public class UIManager : MonoBehaviour
             GetComponent<UiButton_ABP_Pro>();
         conditionMeter = baseContextualUI.GetChild(5).
             GetComponent<ConditionMeter>();
+        fuelMeter = baseContextualUI.GetChild(6).
+            GetComponent<FuelMeter>();
         cameraAlternation = baseContextualUI.GetChild(7).
             GetComponent<CameraAlternationButton>();
+        resetBikeButton = baseContextualUI.GetChild(9).
+            GetComponent<ResetBikeButton>();
         onFallPopup = UnityExtensionsUtilities.
             GetComponentInChildrenIncludingInactive<OnFallPopup>(transform.GetChild(0), 1);
     }
@@ -46,11 +54,12 @@ public class UIManager : MonoBehaviour
         GameManager.instance.bikeAdditionalPhysics.onDislodged += EnableOnFallPopup;
     }
 
-    public void EnableOnFallPopup()
-    {
-        if (popupCoroutine == null)
-            popupCoroutine= StartCoroutine(EnableOnFallPopupAfterDelay(1));
-    }
+    public void EnableOnFallPopup()=>
+            popupCoroutine= StartCoroutine(EnableOnFallPopupAfterDelay(2));
+    public void EnableResetBikeButton()=>
+            resetBikeButton.gameObject.SetActive(true);
+    public void DisableResetBikeButton()=>
+            resetBikeButton.gameObject.SetActive(false);
     public IEnumerator EnableOnFallPopupAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);

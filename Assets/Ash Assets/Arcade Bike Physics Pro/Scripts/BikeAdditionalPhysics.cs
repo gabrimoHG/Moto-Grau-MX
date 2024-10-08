@@ -1,10 +1,10 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 using ArcadeBP_Pro;
-using System.Threading;
-using UnityEditor.Experimental.GraphView;
-
+using HistoricGamesUtils;
+using UnityEngine.Rendering;
 public class BikeAdditionalPhysics : MonoBehaviour
 {
     [Tooltip("Reference to the ArcadeBikeControllerPro script.")]
@@ -25,19 +25,24 @@ public class BikeAdditionalPhysics : MonoBehaviour
     public int impactCeiling;
     [Tooltip("Threshold of impact force to activate ragdoll.")]
     public float impactThresholdToFall = 10f;
-    
+
     float crashImpact;
     public float verticalImpactThreshold = 10;
 
     [Tooltip("Ignore collisions with the bottom part of the bike collider.")]
     public bool ignoreBottomCollision = true;
 
-    public event Action onDislodged=delegate { };
+    public event Action onDislodged = delegate { };
 
     private Rigidbody bikeRigidbody;
-    private bool isRagdollActivated = false;
+    bool isRagdollActivated = false;
+    bool collisionCooldown = false;
+    [SerializeField] float cooldownDuration;
+    [SerializeField] AudioSource crashAudioSource;
+    [SerializeField] AudioClip smallCrashClip;
     private GameObject bikeRagdollInstance;
     float damage;
+
     public Transform GetRagdollBikeTransform() { return bikeRagdollInstance.transform; }
     public GameObject characterRagdollInstance { get; private set; }
     private Collider bikeCollider;
@@ -45,89 +50,98 @@ public class BikeAdditionalPhysics : MonoBehaviour
     private void Awake()
     {
         bikeRigidbody = GetComponent<Rigidbody>();
+#if UNITY_EDITOR_64
+        if (cooldownDuration == 0)
+            Debug.LogWarning("Collision cooldown is 0!");
+#endif
     }
     void Start()
     {
         bikeCollider = bikeController.bikeReferences.collider;
-        onDislodged+= SetCameraTargetToRagdoll;
     }
 
     void OnCollisionEnter(Collision collision)
     {
-        if (isRagdollActivated) 
+        //Debug.Log("Collided with " + collision.gameObject);
+        if (isRagdollActivated || collisionCooldown || collision.gameObject.layer == 6)
         {
             crashImpact = 0;
-            return; 
+            //collisionCooldown = false;
+            //Debug.Log("Cooldown!");
+            return;
+        }
+
+        ContactPoint[] contacts = new ContactPoint[collision.contactCount];
+        collision.GetContacts(contacts);
+        var backBodyCollider = bikeCollider.transform.GetChild(2).GetComponent<CapsuleCollider>();
+        foreach (ContactPoint contact in contacts)
+        {
+            Collider colliderOnBike = contact.thisCollider;
+
+            if (colliderOnBike == backBodyCollider)
+                return;
         }
 
         crashImpact = collision.impulse.magnitude / bikeRigidbody.mass;
         var wheelieTransform = bikeController.bikeReferences.wheelieTransform;
+        float clampedImpact = 0;
+        float crashOutputDegree = 0;
         //Debug.Log("Impact " + crashImpact);
-        Debug.Break();
+        //Debug.Break();
         if (!bikeController.isDoingWheelie &&
             !bikeController.isDoingStoppie)
         {
-            Debug.Log("Não deveria... ");
-            float clampedImpact = Mathf.Clamp(crashImpact, 0, impactCeiling);
+            clampedImpact = Mathf.Clamp(crashImpact, 0, impactCeiling);
             damage = Mathf.Lerp(0, 100, clampedImpact / impactCeiling);
-            
-
-            var crashOutputDegree = Mathf.Lerp(0, 35, (crashImpact - 2) / (impactThresholdToFall - 2));
-
+            crashOutputDegree = Mathf.Lerp(0, 35, (crashImpact - 2) / (impactThresholdToFall - 2));
             wheelieTransform.localRotation = Quaternion.Euler(crashOutputDegree, 0, 0);
         }
         else if (bikeController.isDoingWheelie)
         {
-            float clampedImpact = Mathf.Clamp(crashImpact, 0, impactCeiling);
-            damage = Mathf.Lerp(0, 40, clampedImpact / (impactCeiling/2));
+            clampedImpact = Mathf.Clamp(crashImpact, 0, impactCeiling / 2.5f);
+            damage = Mathf.Lerp(0, 20, clampedImpact / (impactCeiling / 2.5f));
 
-            Debug.Log("Wheelie angle "+ bikeController.wheelieAngle);
-            float crashOutputDegree = 0;
+            crashOutputDegree = 0;
 
-            if (bikeController.wheelieAngle <= 15) 
-                crashOutputDegree = Mathf.Lerp (0, -25, crashImpact / bikeController.wheelieAngle);
-            else
-                crashOutputDegree = Mathf.Lerp(0, 25, crashImpact / bikeController.wheelieAngle);
 
-            Debug.Log("Degree on wheelie after crash " + crashOutputDegree);
-            wheelieTransform.localRotation = Quaternion.Euler(crashOutputDegree, 0, 0);
-
-            
-        }
-        bikeController.DecreaseCondition((int)damage);
-        if (crashImpact > impactThresholdToFall)
-            DislodgePlayer();
-        return;
-
-        Vector3 localContactPoint = bikeController.bikeReferences.
-            leanTransform.InverseTransformPoint(collision.contacts[0].point);
-        Vector3 bikeCenter = bikeController.bikeReferences.
-            leanTransform.InverseTransformPoint(bikeCollider.bounds.center);
-        //Debug.Log("Local contact point " + localContactPoint);
-        //Debug.Log("Bike center " + bikeCenter);
-        //Debug.Log("Collision contacts size " + collision.contacts.Length);
-        if (ignoreBottomCollision)
-        {
-            if (localContactPoint.y > bikeCenter.y)
+            if (bikeController.wheelieAngle <= 15)
             {
-                //Debug.Log("Vertical collision impact " + collision.impulse.magnitude / bikeRigidbody.mass);
-                //Debug.Log("Vertical impact threshold " + verticalImpactThreshold);
-                if (collision.impulse.magnitude / bikeRigidbody.mass > verticalImpactThreshold)
-                {
-                    DislodgePlayer();
-                }
+                crashOutputDegree = Mathf.Lerp(0, bikeController.wheelieAngle - 15, crashImpact);
             }
+            else
+            {
+                crashOutputDegree = Mathf.Lerp(0,
+                    (bikeController.wheelieAngle + 30) * -1, crashImpact);
+            }
+            StartCoroutine(InterpolationUtilities.RotateInXLinearly(wheelieTransform,
+                crashOutputDegree, .25f, OutcomeAfterCrashOnWheelie, true));
         }
         else
         {
-            Debug.Log("Collision impact " + collision.impulse.magnitude / bikeRigidbody.mass);
-            Debug.Log("Impact threshold " + impactThresholdToFall);
-            if (collision.impulse.magnitude / bikeRigidbody.mass > impactThresholdToFall)
-                DislodgePlayer();
+            //Debug.Log("Revisar impacto durante stoppie!");
+            clampedImpact = Mathf.Clamp(crashImpact, 0, impactCeiling);
+            damage = Mathf.Lerp(0, 20, clampedImpact / (impactCeiling / 2));
+            crashOutputDegree = 0;
+            crashOutputDegree = Mathf.Lerp(0, -20, crashImpact);
+            StartCoroutine(InterpolationUtilities.RotateInXLinearly(wheelieTransform,
+                crashOutputDegree, .25f, null, true));
         }
+        //Debug.Log("Damage " + damage);
+        bikeController.DecreaseCondition((int)damage);
+        damage = 0;
+        StartCoroutine(CollisionCooldownRoutine());
+        //Debug.Log(crashImpact);
+        var crashVolume = crashImpact / impactThresholdToFall;
+        if (!crashAudioSource.isPlaying)
+        {
+            crashAudioSource.clip = smallCrashClip;
+            crashAudioSource.volume = crashVolume;
+            crashAudioSource.Play();
+        }
+        if (crashImpact > impactThresholdToFall)
+            DislodgePlayer();
     }
-
-    public void DislodgePlayer(bool isDoingWheelie = false, bool isStoppie = false)
+    public void DislodgePlayer(bool isDoingWheelie = false, bool isDoingStoppie = false)
     {
         isRagdollActivated = true;
 
@@ -162,8 +176,8 @@ public class BikeAdditionalPhysics : MonoBehaviour
         foreach (Rigidbody rb in bikeRagdollRigidbodies)
         {
             if (isDoingWheelie)
-                rb.velocity = bikeVelocity*2;
-            else
+                rb.velocity = bikeVelocity * 2;
+            else if(isDoingStoppie)
                 rb.velocity = bikeVelocity;
             rb.angularVelocity = bikeAngularVelocity;
         }
@@ -175,10 +189,9 @@ public class BikeAdditionalPhysics : MonoBehaviour
                 rb.velocity = bikeVelocity;
                 rb.angularVelocity = bikeAngularVelocity;
             }
-            else
+            else if(isDoingStoppie)
             {
                 rb.velocity = -bikeVelocity;
-                Debug.Log(bikeVelocity);
                 rb.angularVelocity = -bikeAngularVelocity;
             }
         }
@@ -190,16 +203,34 @@ public class BikeAdditionalPhysics : MonoBehaviour
                 0, (wheelieMaxSpeed * 3.6f));
             damage = Mathf.Lerp(0, 100, clampedSpeed / (wheelieMaxSpeed * 3.6f));
         }
-        else
+        else if(isDoingStoppie)
         {
-            damage = Mathf.Lerp(0, 100, bikeController.speedKmph/
+            damage = Mathf.Lerp(0, 100, bikeController.speedKmph /
                 bikeController.stoppieAngle);
         }
 
 
+        //Debug.Log("Damage " + damage);
         bikeController.DecreaseCondition((int)damage);
         gameObject.SetActive(false);
+        collisionCooldown = false;
         onDislodged();
+    }
+
+    void OutcomeAfterCrashOnWheelie()
+    {
+        var wheelieTransform = bikeController.bikeReferences.wheelieTransform;
+        if (wheelieTransform.localRotation.eulerAngles.x <
+            (360 - bikeController.bikeSettings.wheelieAngleLimit))
+            DislodgePlayer(true, false);
+        //Debug.Log("Wheelie rotation "+wheelieTransform.localRotation.eulerAngles.x);
+        //Debug.Log("Wheelie limit " + bikeController.bikeSettings.wheelieAngleLimit);
+    }
+    IEnumerator CollisionCooldownRoutine()
+    {
+        collisionCooldown = true;  // Enable cooldown
+        yield return new WaitForSeconds(cooldownDuration);  // Wait for a few ticks or seconds
+        collisionCooldown = false;  // Disable cooldown after the delay
     }
 
     public void CleanRagdolls()
@@ -222,23 +253,6 @@ public class BikeAdditionalPhysics : MonoBehaviour
         isRagdollActivated = false;
 
     }
-
-    public void SetCameraTargetToRagdoll()
-    {
-        var targetTransform = transform;
-        if (cameraController.currentCameraIndex != 2)
-        {
-            targetTransform = characterRagdollInstance.GetComponent<Animator>().
-                GetBoneTransform(HumanBodyBones.Hips);
-        }
-        else
-        {
-            targetTransform = characterRagdollInstance.GetComponent<Animator>().
-                GetBoneTransform(HumanBodyBones.Head);
-        }
-        cameraController.SetCameratarget(targetTransform, targetTransform);
-    }
-
 
     public void ForceActivateRagdoll()
     {

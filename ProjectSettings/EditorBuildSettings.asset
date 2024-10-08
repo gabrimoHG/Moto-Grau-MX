@@ -9,6 +9,8 @@ EditorBuildSettings:
     path: Assets/Ash Assets/Arcade Bike Physics Pro/Demo Scenes/Mobile Demo Scene.unity
     guid: 8cad7ff6a613a794882ea8446e1de2f9
   m_configObjects:
+    com.unity.adaptiveperformance.google.android.provider_settings: {fileID: 11400000,
+      guid: e795b50411acae14383ce467f6a2c119, type: 2}
     com.unity.adaptiveperformance.loader_settings: {fileID: 11400000, guid: 7ae66db249738734d83a7897b7db45bc,
       type: 2}
     com.unity.adaptiveperformance.samsung.android.provider_settings: {fileID: 11400000,
