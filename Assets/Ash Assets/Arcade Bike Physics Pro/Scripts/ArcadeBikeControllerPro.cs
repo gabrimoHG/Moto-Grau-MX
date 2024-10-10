@@ -226,6 +226,7 @@ namespace ArcadeBP_Pro
             public float brokenOrNoGasSpeedLimit;
             public float fuelConsumptionRate;
             public float extraConsumptionFloor;
+            public int horsepower;
 
             [Tooltip("Speed of the wheelie animation.")]
             public float wheelieAnimationSpeed;
@@ -942,26 +943,43 @@ namespace ArcadeBP_Pro
                         //Debug.Log("5");
                         speedLimit = bikeSettings.brokenOrNoGasSpeedLimit;
                     }
+                    float slopeAdjustedAcceleration = bikeSettings.acceleration;
+                    if (logicalGear == 0)
+                    {
+                        float slopeAngle = Vector3.Angle(Vector3.up, groundNormal);
+                        float horsePowerFactor = Mathf.Log(bikeSettings.horsepower + 1, 2) * 0.5f;
+                        //taDebug.Log("HP factor " + horsePowerFactor);
+                        float slopeFactor = Mathf.Clamp01(1f - (slopeAngle / 30));
+                        Vector3 bikeDirection = transform.forward;
+                        Vector3 slopeDirection = Vector3.ProjectOnPlane(bikeDirection,
+                            groundNormal).normalized;
+                        float dot = Vector3.Dot(slopeDirection, bikeDirection);
 
-                    float slopeAngle = Vector3.Angle(Vector3.up, groundNormal);
-                    float slopeFactor = Mathf.Clamp01(1f - (slopeAngle / 50));
-
+                        if (slopeAngle > 5 && dot > 0)
+                        {
+                            float slopeBoost = slopeFactor < 0.75f
+                                ? 1f + (horsePowerFactor * (1f - slopeFactor))
+                                : 1f + horsePowerFactor * (1f - slopeFactor) * 0.5f;
+                            /*float slopeBoost = slopeFactor < 0.75f ? 1 + horsePowerFactor :
+                                1 + horsePowerFactor - slopeFactor;*/
+                            //Debug.Log("Boost "+ slopeBoost);
+                            slopeAdjustedAcceleration = bikeSettings.acceleration * slopeBoost;
+                        }
+                    }
                     if (isAcceleratingInput)
                     {
-                        float slopeBoost = slopeFactor < 0.5f ? (1f - slopeFactor) * 0.5f : 1f;
-                        slopeBoost *= 5;
-                        float slopeAdjustedAcceleration = bikeSettings.acceleration * slopeBoost;
+                        
 
-                        /*targetAcceleration = currentSpeed >= 0
+                        targetAcceleration = currentSpeed >= 0
                             ? Mathf.Min(slopeAdjustedAcceleration * bikeCurves.
                             accelerationCurve.Evaluate(localBikeVelocity.magnitude / speedLimit),
                             (speedLimit - currentSpeed) / Time.fixedDeltaTime)
-                            : bikeSettings.deceleration;*/
-                        targetAcceleration = currentSpeed >= 0
+                            : bikeSettings.deceleration;
+                        /*targetAcceleration = currentSpeed >= 0
                             ? Mathf.Min(bikeSettings.acceleration * bikeCurves.
                             accelerationCurve.Evaluate(localBikeVelocity.magnitude / speedLimit)
                             , (speedLimit - currentSpeed) / Time.fixedDeltaTime)
-                            : bikeSettings.deceleration;
+                            : bikeSettings.deceleration;*/
 
                         isApplyingBrake = currentSpeed < 0;
                     }
@@ -1308,7 +1326,7 @@ namespace ArcadeBP_Pro
                     float newAngle = Mathf.MoveTowards(currentAngle, 0, dropAcceleration * Time.deltaTime);
                     bikeReferences.wheelieTransform.localRotation = Quaternion.Euler(newAngle, 0, 0);
                 }
-                if (frontWheelIsGrounded && bikeInput.wheelie==0)
+                if (frontWheelIsGrounded && bikeInput.wheelie==0 && isDoingWheelie)
                 {
                     isDoingWheelie = false;
                     bikeEvents.RaiseOnWheelieFinish(true);
@@ -1368,8 +1386,11 @@ namespace ArcadeBP_Pro
                 }
 
                 bikeReferences.wheelieTransform.localRotation = Quaternion.Euler(newAngle, 0, 0);
-                isDoingWheelie = false;
-                bikeEvents.RaiseOnWheelieFinish(true);
+                if (isDoingWheelie)
+                {
+                    bikeEvents.RaiseOnWheelieFinish(true);
+                    isDoingWheelie = false;
+                }
             }
             //UnityEngine.Debug.Log("Is rear wheel grounded: " + rearWheelIsGrounded);
         }

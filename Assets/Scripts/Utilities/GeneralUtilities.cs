@@ -19,6 +19,13 @@ namespace HistoricGamesUtils
             return vector.x < value || vector.y < value || vector.z < value;
         }
 
+        public static string ConvertSecondsToStringStandard(float timeInSeconds)
+        {
+            int minutes = Mathf.FloorToInt(timeInSeconds / 60);
+            int seconds = Mathf.FloorToInt(timeInSeconds % 60);
+
+            return string.Format("{0}:{1:D2}", minutes, seconds);
+        }
         public static float ConvertCurrencyToFloat(string currencyString,
             string exclusionString)
         {

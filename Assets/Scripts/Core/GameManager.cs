@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour
     [SerializeField]ArcadeBikeControllerPro currentBikeController;
     [SerializeField] Vector3 spawnPosition;
     Quaternion spawnRotation;
+    public WheelieRating wheelieRating { get; private set; }
     public ArcadeBikeControllerPro GetCurrentBike() { return currentBikeController; }
     public BikeAdditionalPhysics bikeAdditionalPhysics { get; private set; }
     public CameraController cameraController { get; private set; }
@@ -29,6 +30,7 @@ public class GameManager : MonoBehaviour
         cameraController = bikeInstance.bikeReferences.cameraController;
         bikeAdditionalPhysics = currentBikeController.GetComponent<BikeAdditionalPhysics>();
         bikeAdditionalPhysics.onDislodged += UpdateSpawnTransform;
+        wheelieRating = GetComponent<WheelieRating>();
     }
 
     void UpdateSpawnTransform()

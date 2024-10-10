@@ -4079,6 +4079,7 @@ MonoBehaviour:
     brokenOrNoGasSpeedLimit: 4
     fuelConsumptionRate: 0.25
     extraConsumptionFloor: 0
+    horsepower: 9
     wheelieAnimationSpeed: 0.5
     alignRotatorSpeed_Ground: 20
     alignRotatorSpeed_Air: 2

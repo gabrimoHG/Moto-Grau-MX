@@ -20,7 +20,7 @@ public class UIManager : MonoBehaviour
     public ConditionMeter conditionMeter { private set; get; }
     public FuelMeter fuelMeter { private set; get; }
     public CameraAlternationButton cameraAlternation { private set; get; }
-
+    public BikeStanceData bikeStanceData { private set; get; }
     public ResetBikeButton resetBikeButton { private set; get; }
     Coroutine popupCoroutine;
     Transform panel;
@@ -45,6 +45,7 @@ public class UIManager : MonoBehaviour
             GetComponent<CameraAlternationButton>();
         resetBikeButton = baseContextualUI.GetChild(9).
             GetComponent<ResetBikeButton>();
+        bikeStanceData = baseContextualUI.GetChild(10).GetComponent<BikeStanceData>();
         onFallPopup = UnityExtensionsUtilities.
             GetComponentInChildrenIncludingInactive<OnFallPopup>(transform.GetChild(0), 1);
     }
