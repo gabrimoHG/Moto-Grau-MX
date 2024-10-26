@@ -21,21 +21,23 @@ public class WheelieRating : MonoBehaviour
     {
         bikeController = FindObjectOfType<ArcadeBikeControllerPro>();
         bikeController.bikeEvents.onWheelieStart += TriggerWheelieStatistics;
-        //bikeController.bikeEvents.onWheelieFinish += ShowStatistics;
+        bikeController.bikeEvents.onWheelieFinish += ShowStatistics;
     }
 
     void TriggerWheelieStatistics() => StartCoroutine(RecordWheelieStatistics());
 
     IEnumerator RecordWheelieStatistics()
     {
-        bikeController.bikeEvents.onWheelieStart -= TriggerWheelieStatistics;
-        bikeController.bikeEvents.onWheelieFinish += ShowStatistics;
+        //bikeController.bikeEvents.onWheelieStart -= TriggerWheelieStatistics;
+        //bikeController.bikeEvents.onWheelieFinish += ShowStatistics;
         executionTime = 0f;
         startTime = Time.fixedTime;
         speedsRecorded = 0;
         wheelieAngles = 0;
         wheelieCycles = 0;
         //Debug.Log("Is doing wheelie? "+ bikeController.isDoingWheelie);
+        if(!bikeController.isDoingWheelie)
+            yield return null;
         while (bikeController.isDoingWheelie)
         {
             currentAngle = Mathf.Abs(bikeController.bikeReferences.

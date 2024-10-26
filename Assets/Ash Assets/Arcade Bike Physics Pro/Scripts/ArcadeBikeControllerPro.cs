@@ -1303,8 +1303,9 @@ namespace ArcadeBP_Pro
                     wheelieAngle = GeneralUtilities.ConvertAngleToFirstHalfStandard(
                         bikeReferences.wheelieTransform.localRotation.eulerAngles.x);
                     //Debug.Log("Target angle " + wheelieAngle);
+                    if (!isDoingWheelie)
+                        bikeEvents.RaiseOnWheelieStart();
                     isDoingWheelie = true;
-                    bikeEvents.RaiseOnWheelieStart();
                 }
                 else
                 {

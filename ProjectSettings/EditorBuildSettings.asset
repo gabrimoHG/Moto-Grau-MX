@@ -6,7 +6,7 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Ash Assets/Arcade Bike Physics Pro/Demo Scenes/Mobile Demo Scene.unity
+    path: Assets/Scenes/Mobile Demo Scene.unity
     guid: 8cad7ff6a613a794882ea8446e1de2f9
   m_configObjects:
     com.unity.adaptiveperformance.google.android.provider_settings: {fileID: 11400000,

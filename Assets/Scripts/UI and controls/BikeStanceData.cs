@@ -41,19 +41,19 @@ public class BikeStanceData : MonoBehaviour
         averageAngle.text = "0º";
         silhouette.color = Color.white;
         silhouette.rectTransform.rotation = Quaternion.identity;
-        Debug.Log("Finished!");
     }
 
     IEnumerator SetSilhouetteRotationOnWheelie()
     {
-        Debug.Log("Started!");
+        
         var wheelieLimit = bikeController.bikeSettings.wheelieAngleLimit;
         wheelieRating = GameManager.instance.wheelieRating;
-        while (true)
+        if(!bikeController.isDoingWheelie)
+            yield return null;
+        while (bikeController.isDoingWheelie)
         {
             executionTime.text = wheelieRating.executionTime.ToString("F2");
             averageAngle.text = wheelieRating.averageAngle.ToString("F2") + "º";
-            
 
             var targetRot = 360- wheelieRating.currentAngle;
             float currentRotationZ = silhouette.rectTransform.rotation.eulerAngles.z;
