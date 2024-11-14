@@ -10,8 +10,14 @@ public class GameManager : MonoBehaviour
     [SerializeField]ArcadeBikeControllerPro currentBikeController;
     [SerializeField] Vector3 spawnPosition;
     Quaternion spawnRotation;
+    public event Action<ArcadeBikeControllerPro> onPlayerBikeChange = delegate { };
     public WheelieRating wheelieRating { get; private set; }
-    public ArcadeBikeControllerPro GetCurrentBike() { return currentBikeController; }
+    public ArcadeBikeControllerPro GetCurrentBikeController() { return currentBikeController; }
+    public void RaiseOnPlayerBikeChange(ArcadeBikeControllerPro arcadeBikeController)
+    {
+        currentBikeController = arcadeBikeController;
+        onPlayerBikeChange(arcadeBikeController);
+    }
     public BikeAdditionalPhysics bikeAdditionalPhysics { get; private set; }
     public CameraController cameraController { get; private set; }
     public event Action onBikeReset = delegate { };
@@ -32,7 +38,6 @@ public class GameManager : MonoBehaviour
         bikeAdditionalPhysics.onDislodged += UpdateSpawnTransform;
         wheelieRating = GetComponent<WheelieRating>();
     }
-
     void UpdateSpawnTransform()
     {
         spawnPosition = bikeAdditionalPhysics.GetRagdollBikeTransform().position;
@@ -57,6 +62,8 @@ public class GameManager : MonoBehaviour
         this.isPaused = isPaused;
     }
 
+    public void SetDestruction(GameObject expendableObject, float lifeCycle=60)=>
+        Destroy(expendableObject, lifeCycle);
     public void ResetBike()
     {
 

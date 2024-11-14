@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a02d2e37fe91b964b8b93edda7cee0ff, type: 3}
+  m_Name: Hando BF 150
+  m_EditorClassIdentifier: 
+  title: Hando BF 150
+  id: 1
+  mainPrefab: {fileID: 453719955193717536, guid: 336e5ac48ea24a74cbdf497f7361ac78,
+    type: 3}
+  dummyPrefab: {fileID: 6807432397228577837, guid: acdcb72bb0a2af447a9dc2b02871cc11,
+    type: 3}

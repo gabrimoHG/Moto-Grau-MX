@@ -7,7 +7,7 @@ public class FuelMeter : Gauge
     protected override void Start()
     {
         base.Start();
-        currentBike = GameManager.instance.GetCurrentBike();
+        currentBike = GameManager.instance.GetCurrentBikeController();
         currentBike.bikeEvents.onFuelUpdate += UpdateGauge;
     }
 

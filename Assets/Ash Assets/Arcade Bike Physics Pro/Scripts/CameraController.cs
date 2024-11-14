@@ -5,10 +5,11 @@ using Unity.VisualScripting;
 using Unity.Mathematics;
 using TMPro.Examples;
 using System.Collections;
-
+using Cinemachine;
 
 namespace ArcadeBP_Pro
 {
+
     public class CameraController : MonoBehaviour
     {
         [Tooltip("Array of Cinemachine virtual cameras.")]
@@ -45,7 +46,9 @@ namespace ArcadeBP_Pro
         [SerializeField] float thirdCamReverseZOffset;
         [SerializeField] float thirdCamStandardZOffset;
         [SerializeField] float perspectiveChangeDuration;
-
+        [SerializeField] float defaultFPSYOffset;
+        [SerializeField] float onWheelieFPSYOffset;
+        float currentFPSYOffset;
         private CinemachineBasicMultiChannelPerlin[] cameraNoise;
         public int currentCameraIndex { private set; get; }
         public bool isFirstPerson { private set; get; }
@@ -54,27 +57,42 @@ namespace ArcadeBP_Pro
         bool isManuallyMoving, isRotated;
         BikeAdditionalPhysics bikeAdditionalPhysics;
         Transform firstPersonFollowTarget;
+        
         Transform[] thirdPersonFollowTargets;
         Transform[] thirdPersonLookAtTargets;
-
+        WheelieRating wheelieRating;
 
         private void Awake()
         {
             transposer = cameras[currentCameraIndex].
                     GetCinemachineComponent<CinemachineTransposer>();
+            wheelieRating = FindObjectOfType<WheelieRating>();  
             transform.parent = null;
             smoothFOV = 60f;
+            defaultFPSYOffset = 10;
+            onWheelieFPSYOffset = -20;
+            
             //transform.name = "CameraController_" + RemovePrefix(bikeController.transform.name, "ABP_Pro");
         }
-
+        void UpdateBikeReferences(ArcadeBikeControllerPro bikeController)
+        {
+            this.bikeController = bikeController;
+            InitialDataSet();
+        }
         void Start()
+        {
+            GameManager.instance.onPlayerBikeChange += UpdateBikeReferences;
+            InitialDataSet();
+        }
+
+        void InitialDataSet()
         {
             cameraNoise = new CinemachineBasicMultiChannelPerlin[cameras.Length];
             GameManager.instance.onBikeReset += ResetCameraTarget;
-            thirdPersonFollowTargets = new Transform[cameras.Length-1];
-            thirdPersonLookAtTargets = new Transform[cameras.Length-1];
+            thirdPersonFollowTargets = new Transform[cameras.Length - 1];
+            thirdPersonLookAtTargets = new Transform[cameras.Length - 1];
             speedThresholdForShake = bikeController.bikeSettings.maxSpeed * .75f;
-            bikeAdditionalPhysics = GameManager.instance.GetCurrentBike()
+            bikeAdditionalPhysics = GameManager.instance.GetCurrentBikeController()
                 .GetComponent<BikeAdditionalPhysics>();
             bikeAdditionalPhysics.onDislodged += SetCameraTargetToRagdoll;
 
@@ -88,14 +106,13 @@ namespace ArcadeBP_Pro
                     thirdPersonFollowTargets[i] = cameras[i].Follow;
                     thirdPersonLookAtTargets[i] = cameras[i].LookAt;
                 }
-                else 
+                else
                 {
                     firstPersonFollowTarget = cameras[i].Follow;
                     firstPersonFollowTarget = cameras[i].LookAt;
                 }
             }
         }
-
         void Update()
         {
             if (Input.GetKeyDown(switchCameraKey))
@@ -110,10 +127,32 @@ namespace ArcadeBP_Pro
             {
                 StopShake();
             }
-
+            RotationAdjustment();
             //UpdateFOV(bikeSpeed);
         }
+        void RotationAdjustment()
+        {
+            var fpsCamera = cameras[currentCameraIndex];
+            var composer = fpsCamera.GetCinemachineComponent<CinemachineComposer>();
+            var wheelieAngle = 360 - wheelieRating.currentAngle;
+            if (isFirstPerson && wheelieAngle > 10 && bikeController.isDoingWheelie)
+            {
+                currentFPSYOffset = Mathf.Lerp(currentFPSYOffset,
+                    onWheelieFPSYOffset, 1 * Time.deltaTime);
+                Vector3 offset = composer.m_TrackedObjectOffset;
+                offset.y = currentFPSYOffset;
+                composer.m_TrackedObjectOffset = offset;
+            }
+            else if (isFirstPerson && wheelieAngle < 10)
+            {
+                currentFPSYOffset = Mathf.Lerp(currentFPSYOffset,
+                    defaultFPSYOffset, 2 * Time.deltaTime);
+                Vector3 offset = composer.m_TrackedObjectOffset;
+                offset.y = currentFPSYOffset;
+                composer.m_TrackedObjectOffset = offset;
+            }
 
+        }
         public void SwitchCamera()
         {
             cameras[currentCameraIndex].gameObject.SetActive(false);
@@ -280,7 +319,8 @@ namespace ArcadeBP_Pro
                     reversePos = new Vector3(0, standardY, thirdCamStandardZOffset);
                     if (isRotated)
                     {
-                        Quaternion firstPersonRotation = Quaternion.Euler(target.localRotation.eulerAngles.x,
+                        Quaternion firstPersonRotation = Quaternion.Euler(
+                            target.localRotation.eulerAngles.x,
                             0, target.localRotation.eulerAngles.z);
                         StartCoroutine(InterpolationUtilities.RotateToTargetLinearly(
                             target, target.rotation, firstPersonRotation, .4f, null, true));

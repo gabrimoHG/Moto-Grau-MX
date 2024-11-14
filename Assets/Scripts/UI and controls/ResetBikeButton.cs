@@ -11,7 +11,7 @@ public class ResetBikeButton : MonoBehaviour
     private void OnEnable()
     {
         button.onClick.RemoveAllListeners();
-        var bike = GameManager.instance.GetCurrentBike();
+        var bike = GameManager.instance.GetCurrentBikeController();
         button.onClick.AddListener(bike.ResetToLastValidPosition);
     }
 }

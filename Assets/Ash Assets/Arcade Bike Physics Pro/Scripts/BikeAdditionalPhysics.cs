@@ -57,13 +57,15 @@ public class BikeAdditionalPhysics : MonoBehaviour
     }
     void Start()
     {
+        GameManager.instance.onPlayerBikeChange += UpdateBikeController;
         bikeCollider = bikeController.bikeReferences.collider;
     }
-
+    void UpdateBikeController(ArcadeBikeControllerPro bikeController) =>
+        this.bikeController = bikeController;
     void OnCollisionEnter(Collision collision)
     {
         //Debug.Log("Collided with " + collision.gameObject);
-        if (isRagdollActivated || collisionCooldown || collision.gameObject.layer == 6)
+        if (isRagdollActivated || collisionCooldown) //|| collision.gameObject.layer == 6)
         {
             crashImpact = 0;
             //collisionCooldown = false;

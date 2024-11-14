@@ -37,10 +37,18 @@ namespace ArcadeBP_Pro
         [Tooltip("The input data for the bike.")]
         [HideInInspector] public BikeInput bikeInput;
 
-
         [Serializable]
+        public class BikeMaterials
+        {
+            public Material bodyMaterial;
+            public Material rimMaterial;
+        }
+        public BikeMaterials bikeMaterials;
+            [Serializable]
         public class BikeReferences
         {
+            public BikeData dataContainer;
+
             [Tooltip("The main transform used for aligning the bike’s rotation with the ground.")]
             public Transform rotator;
 
@@ -97,6 +105,8 @@ namespace ArcadeBP_Pro
 
             [Tooltip("ragdoll activator of the bike")]
             public BikeAdditionalPhysics additionalPhysics;
+
+            public TailSection tailSection;
         }
         public BikeReferences bikeReferences;
 
@@ -226,6 +236,8 @@ namespace ArcadeBP_Pro
             public float brokenOrNoGasSpeedLimit;
             public float fuelConsumptionRate;
             public float extraConsumptionFloor;
+            public float frontalWeight;
+            public float scrapingDownForce;
             public int horsepower;
 
             [Tooltip("Speed of the wheelie animation.")]
@@ -284,6 +296,8 @@ namespace ArcadeBP_Pro
 
             [Tooltip("The audio source for the skid sound.")]
             public AudioSource SkidSound;
+
+            public AudioSource scrapingSound;
         }
         public BikeAudio bikeAudio;
 
@@ -1247,19 +1261,9 @@ namespace ArcadeBP_Pro
 
         private void WheelieAnimation()
         {
-            /*if ((!(bikeInput.Wheelie < 0) && frontWheelIsGrounded) 
-                || localBikeVelocity.magnitude < bikeSettings.wheelieMinSpeed)
-            {
-                isDoingWheelie = false;
-            }*/
-
-            //UnityEngine.Debug.Log(isDoingWheelie);
-            //rearWheelStandardRaycast
-            
-            bool snapWheelie = false;
+            /*bool snapWheelie = false;
             float speedFactor = Mathf.InverseLerp(bikeSettings.wheelieMinSpeed, 
                 bikeSettings.wheelieMaxSpeed, localBikeVelocity.magnitude);
-            // above logic makes better wheelie but still not perfect
 
             if ((bikeInput.wheelie < 0 || isDoingWheelie) && rearWheelIsGrounded &&
                 localBikeVelocity.magnitude >= bikeSettings.wheelieMinSpeed)
@@ -1306,26 +1310,94 @@ namespace ArcadeBP_Pro
                     if (!isDoingWheelie)
                         bikeEvents.RaiseOnWheelieStart();
                     isDoingWheelie = true;
+                }*/
+            bool snapWheelie = false;
+            float speedFactor = Mathf.InverseLerp(bikeSettings.wheelieMinSpeed,
+                bikeSettings.wheelieMaxSpeed, localBikeVelocity.magnitude);
+
+            if ((bikeInput.wheelie < 0 || isDoingWheelie) && rearWheelIsGrounded &&
+                localBikeVelocity.magnitude >= bikeSettings.wheelieMinSpeed)
+            {
+                float surfaceAngle_rear = Vector3.Angle(groundNormal_rear, Vector3.up);
+                float surfaceAngle_front = Vector3.Angle(groundNormal_front, Vector3.up);
+                float surfaceAngle = Vector3.Angle(groundNormal, Vector3.up);
+                float acceptableAngleForWheelie = 20f;
+
+                if (surfaceAngle > acceptableAngleForWheelie ||
+                    surfaceAngle_front > acceptableAngleForWheelie ||
+                    surfaceAngle_rear > acceptableAngleForWheelie)
+                {
+                    if (isDoingWheelie)
+                        snapWheelie = true;
+                    isDoingWheelie = false;
+                }
+
+                if (bikeInput.accelerate > 0)
+                {
+                    float bikeSpeed = localBikeVelocity.magnitude;
+                    float normalizedSpeed = bikeSpeed / bikeSettings.maxSpeed;
+                    float wheelieEase = bikeCurves.wheelieEasinessCurve.Evaluate(normalizedSpeed);
+                    float wheelieFactor = Mathf.Clamp01(-bikeInput.wheelie) * wheelieEase;
+
+                    float engineFactor = 0;
+                    if (bikeReferences.cameraController.isFirstPerson)
+                        engineFactor = Mathf.InverseLerp(0.5f, 1f, bikeAudio.engineSound.volume * 2);
+                    else
+                        engineFactor = Mathf.InverseLerp(0.5f, 1f, bikeAudio.engineSound.volume);
+
+                    // Calculate the target wheelie angle based on input and speed
+                    float targetAngle = Mathf.Lerp(0, -bikeSettings.wheelieAngle, engineFactor * wheelieFactor);
+
+                    // Check if tail is scraping; if so, reduce the wheelie angle more aggressively
+                    float currentAngle = bikeReferences.wheelieTransform.localRotation.eulerAngles.x;
+                    float newAngle;
+
+                    if (bikeReferences.tailSection.isScraping)
+                    {
+                        // Apply a single downward force to bring the front of the bike down
+                        float scrapingDownForce = bikeSettings.scrapingDownForce; // Control strength of push-down effect
+                        newAngle = Mathf.LerpAngle(currentAngle, 0f, scrapingDownForce * Time.deltaTime);
+                    }
+                    else
+                    {
+                        // Normal wheelie adjustment if no scraping
+                        newAngle = Mathf.LerpAngle(currentAngle, targetAngle, Time.deltaTime
+                            * bikeSettings.wheelieAnimationSpeed);
+                    }
+
+                    // Apply the new angle to the wheelie transform
+                    bikeReferences.wheelieTransform.localRotation = Quaternion.Euler(newAngle, 0, 0);
+
+                    wheelieAngle = GeneralUtilities.ConvertAngleToFirstHalfStandard(
+                        bikeReferences.wheelieTransform.localRotation.eulerAngles.x);
+
+                    if (!isDoingWheelie)
+                        bikeEvents.RaiseOnWheelieStart();
+
+                    isDoingWheelie = true;
                 }
                 else
                 {
-                    //UnityEngine.Debug.Log("Dropping by lack of acceleration!");
 
+                    // Calculate the current wheelie angle (between -180 and 180)
                     float currentAngle = bikeReferences.wheelieTransform.localRotation.eulerAngles.x;
-                    if (currentAngle > 180)
-                        currentAngle -= 360; // Convert to range -180 to 180
-                    float currentAngleFactor = Mathf.Clamp01(Mathf.Abs(currentAngle) /
-                        bikeSettings.wheelieAngle);
-                    
-                    float dynamicDropSpeed = bikeCurves.wheelieDropCurve.Evaluate(speedFactor);
-                    float dropAcceleration = bikeSettings.gravity * speedFactor * currentAngleFactor;
-                    float scaledMinDropSpeed = bikeSettings.minWheelieDropSpeed * dynamicDropSpeed;
-                    dropAcceleration = Mathf.Clamp(dropAcceleration, scaledMinDropSpeed, dynamicDropSpeed);
-                    float angleFactor = Mathf.Abs(currentAngle) / bikeSettings.wheelieAngleLimit;
-                    float dropForce = (angleFactor * angleFactor) * speedFactor * bikeSettings.gravity;
+                    if (currentAngle > 180) currentAngle -= 360;
 
+                    // Calculate an inverted angle factor for drop acceleration (stronger closer to ground)
+                    float angleFactor = 1 - Mathf.Clamp01(Mathf.Abs(currentAngle) / bikeSettings.wheelieAngleLimit);
+                    float speedInfluence = Mathf.Lerp(1.0f, 0.5f, Mathf.Clamp01(speedFactor / bikeSettings.maxSpeed));
+                    float weightInfluence = bikeSettings.frontalWeight * 8 * angleFactor * speedInfluence;
+
+                    // Progressive acceleration: increases as the bike gets closer to zero
+                    float dropAcceleration = (bikeSettings.gravity + weightInfluence) * (1 + angleFactor);
+                    dropAcceleration = Mathf.Max(dropAcceleration, bikeSettings.minWheelieDropSpeed); // Ensure a minimum drop speed
+
+                    // Apply the progressive acceleration to move angle toward 0
                     float newAngle = Mathf.MoveTowards(currentAngle, 0, dropAcceleration * Time.deltaTime);
+
+                    // Update the bike's wheelie rotation
                     bikeReferences.wheelieTransform.localRotation = Quaternion.Euler(newAngle, 0, 0);
+
                 }
                 if (frontWheelIsGrounded && bikeInput.wheelie==0 && isDoingWheelie)
                 {
@@ -1362,31 +1434,32 @@ namespace ArcadeBP_Pro
                 //UnityEngine.Debug.Log("It isn't performing a wheelie!");
                 //UnityEngine.Debug.Log("Wheelie angle " + currentAngle);
 
+                // Convert angle to range -180 to 180
                 float currentAngle = bikeReferences.wheelieTransform.localRotation.eulerAngles.x;
                 if (currentAngle > 180)
-                    currentAngle -= 360; // Convert to range -180 to 180
+                    currentAngle -= 360;
 
-                float currentAngleFactor = Mathf.Clamp01(Mathf.Abs(currentAngle) /
-                    bikeSettings.wheelieAngle);
+                float angleFactor = Mathf.Clamp01(Mathf.Abs(currentAngle) / bikeSettings.wheelieAngleLimit);
+                float speedInfluence = Mathf.Lerp(1.0f, 0.5f, Mathf.Clamp01(speedFactor /
+                    bikeSettings.maxSpeed));
+                float weightInfluence = bikeSettings.frontalWeight * angleFactor * speedInfluence;
 
-                float dynamicDropSpeed = bikeCurves.wheelieDropCurve.Evaluate(speedFactor);
-                float dropAcceleration = bikeSettings.gravity * speedFactor * currentAngleFactor;
-                float scaledMinDropSpeed = bikeSettings.minWheelieDropSpeed * dynamicDropSpeed;
-                dropAcceleration = Mathf.Clamp(dropAcceleration, scaledMinDropSpeed, dynamicDropSpeed);
-                float angleFactor = Mathf.Abs(currentAngle) / bikeSettings.wheelieAngleLimit;
-                float dropForce = (angleFactor * angleFactor) * speedFactor * bikeSettings.gravity;
+                float dropAcceleration = (bikeSettings.gravity + weightInfluence) * (1 + angleFactor);
+                dropAcceleration = Mathf.Max(dropAcceleration, bikeSettings.minWheelieDropSpeed); 
 
                 float newAngle = Mathf.MoveTowards(currentAngle, 0, dropAcceleration * Time.deltaTime);
-                bikeReferences.wheelieTransform.localRotation = Quaternion.Euler(newAngle, 0, 0);
 
                 if (snapWheelie && Mathf.Abs(currentAngle) < 5f)
                 {
-                    newAngle = Mathf.LerpAngle(currentAngle, 0,
-                        Time.deltaTime * bikeSettings.alignRotatorSpeed_Ground);
+                    newAngle = Mathf.LerpAngle(currentAngle, 0, Time.deltaTime *
+                        bikeSettings.alignRotatorSpeed_Ground);
                     Debug.Log("Snapped!");
                 }
 
+                // Update the bike's rotation with the new angle
                 bikeReferences.wheelieTransform.localRotation = Quaternion.Euler(newAngle, 0, 0);
+
+                // Raise event if wheelie has finished
                 if (isDoingWheelie)
                 {
                     bikeEvents.RaiseOnWheelieFinish(true);

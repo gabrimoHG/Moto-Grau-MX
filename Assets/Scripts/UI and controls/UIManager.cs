@@ -4,7 +4,7 @@ using UnityEngine;
 using HistoricGamesUtils;
 using System.Linq.Expressions;
 using ArcadeBP_Pro;
-using UnityEngine.Rendering;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
@@ -54,7 +54,16 @@ public class UIManager : MonoBehaviour
     {
         GameManager.instance.bikeAdditionalPhysics.onDislodged += EnableOnFallPopup;
     }
-
+    public void PanelFadeIn()
+    {
+        var image = panel.GetComponent<Image>();
+        StartCoroutine(InterpolationUtilities.AlphaToTargetLinearly(image, 1, .5f, PanelFadeOut));
+    }
+    void PanelFadeOut()
+    {
+        var image = panel.GetComponent<Image>();
+        StartCoroutine(InterpolationUtilities.AlphaToTargetLinearly(image, 0, .5f));
+    }
     public void EnableOnFallPopup()=>
             popupCoroutine= StartCoroutine(EnableOnFallPopupAfterDelay(2));
     public void EnableResetBikeButton()=>

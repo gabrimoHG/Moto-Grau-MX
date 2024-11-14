@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a02d2e37fe91b964b8b93edda7cee0ff, type: 3}
+  m_Name: Hando Twix
+  m_EditorClassIdentifier: 
+  title: Hando Twix
+  id: 0
+  mainPrefab: {fileID: 7401689496959746661, guid: fa15f130f6b688a4e94ecc5bf2463dee,
+    type: 3}
+  dummyPrefab: {fileID: 2732481878421628424, guid: 034daf067937e524fb0c99c44dc37b1a,
+    type: 3}

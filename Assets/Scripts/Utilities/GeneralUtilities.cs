@@ -162,5 +162,32 @@ namespace HistoricGamesUtils
 
             return angle;
         }
+
+        // Array of standard Unity colors
+        private static Color[] unityColors = new Color[]
+        {
+            Color.red,
+            Color.green,
+            Color.blue,
+            Color.yellow,
+            Color.cyan,
+            Color.magenta,
+            Color.white,
+            Color.black,
+            Color.gray
+        };
+
+        // Static method to pick a random color
+        public static Color GetRandomUnityColor()
+        {
+            int randomIndex = UnityEngine.Random.Range(0, unityColors.Length);
+            return unityColors[randomIndex];
+        }
+
+        public static Color GetRandomAchromaticColor()
+        {
+            int randomIndex = UnityEngine.Random.Range(unityColors.Length-3, unityColors.Length);
+            return unityColors[randomIndex];
+        }
     }
 }
