@@ -1659,7 +1659,9 @@ namespace ArcadeBP_Pro
             {
                 if (frontWheelIsGrounded) // Adjust threshold as needed
                 {
-                    skidmarkIndexFront = skidmarkController.AddSkidMark(frontWheelHit.point, groundNormal_front, TotalSlip_frontWheel, skidmarkIndexFront);
+                    skidmarkIndexFront = skidmarkController.AddSkidMark(
+                        frontWheelHit.point, groundNormal_front,
+                        TotalSlip_frontWheel, skidmarkIndexFront);
                 }
                 else
                 {
@@ -1668,7 +1670,9 @@ namespace ArcadeBP_Pro
 
                 if (rearWheelIsGrounded) // Adjust threshold as needed
                 {
-                    skidmarkIndexRear = skidmarkController.AddSkidMark(rearWheelHit.point, groundNormal_rear, TotalSlip_rearWheel, skidmarkIndexRear);
+                    skidmarkIndexRear = skidmarkController.AddSkidMark(
+                        rearWheelHit.point, groundNormal_rear,
+                        TotalSlip_rearWheel, skidmarkIndexRear);
                 }
                 else
                 {

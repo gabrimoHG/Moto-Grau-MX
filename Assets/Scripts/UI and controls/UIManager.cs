@@ -21,6 +21,7 @@ public class UIManager : MonoBehaviour
     public FuelMeter fuelMeter { private set; get; }
     public CameraAlternationButton cameraAlternation { private set; get; }
     public BikeStanceData bikeStanceData { private set; get; }
+    BikeSpawner bikeSpawner;
     public ResetBikeButton resetBikeButton { private set; get; }
     Coroutine popupCoroutine;
     Transform panel;
@@ -41,7 +42,7 @@ public class UIManager : MonoBehaviour
             GetComponent<ConditionMeter>();
         fuelMeter = baseContextualUI.GetChild(6).
             GetComponent<FuelMeter>();
-        cameraAlternation = baseContextualUI.GetChild(7).
+        cameraAlternation = baseContextualUI.GetChild(8).
             GetComponent<CameraAlternationButton>();
         resetBikeButton = baseContextualUI.GetChild(9).
             GetComponent<ResetBikeButton>();
@@ -52,17 +53,21 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
+        bikeSpawner = FindObjectOfType<BikeSpawner>();
         GameManager.instance.bikeAdditionalPhysics.onDislodged += EnableOnFallPopup;
     }
     public void PanelFadeIn()
     {
         var image = panel.GetComponent<Image>();
-        StartCoroutine(InterpolationUtilities.AlphaToTargetLinearly(image, 1, .5f, PanelFadeOut));
+        var bikeInteractionPad = bikeSpawner.bikeInteractionPad;
+        StartCoroutine(InterpolationUtilities.AlphaToTargetLinearly(image, 1, .75f,
+            bikeInteractionPad.RaiseOnClicked));
     }
-    void PanelFadeOut()
+
+    public void PanelFadeOut()
     {
         var image = panel.GetComponent<Image>();
-        StartCoroutine(InterpolationUtilities.AlphaToTargetLinearly(image, 0, .5f));
+        StartCoroutine(InterpolationUtilities.AlphaToTargetLinearly(image, 0, .75f));
     }
     public void EnableOnFallPopup()=>
             popupCoroutine= StartCoroutine(EnableOnFallPopupAfterDelay(2));

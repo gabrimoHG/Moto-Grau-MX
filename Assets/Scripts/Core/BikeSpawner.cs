@@ -3,73 +3,91 @@ using Cinemachine.Utility;
 using HistoricGamesUtils;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting.Antlr3.Runtime.Tree;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class BikeSpawner : MonoBehaviour
 {
-    Dictionary<Transform, Vector3> commonSpots, rareSpots;
+    List<Transform> commonSpots, rareSpots;
     Transform commonSpotsRoot, rareSpotsRoot;
     BikesController bikesController;
     List<BikeData> spawnableBikes;
     List<Transform> spawnedBikes;
-    Transform bikeInteractionUI;
+    GameObject lastBike;
+    Transform lastSpot;
+    public int lastCameraIndex { get; private set; }
+    public BikeInteractionPad bikeInteractionPad { get; private set; }
     public GameObject closestBike {  get; private set; }
     public float closestDistance { get; private set; }
     void Awake()
     {
         commonSpotsRoot = transform.GetChild(0);
         rareSpotsRoot = transform.GetChild(1);
-        commonSpots = new Dictionary<Transform, Vector3>();
-        rareSpots = new Dictionary<Transform, Vector3>();
-        spawnedBikes = new List<Transform>();
+        commonSpots = new List<Transform>();
+        rareSpots = new List<Transform>();
         bikesController = FindObjectOfType<BikesController>();
-        bikeInteractionUI = transform.GetChild(2);
+        bikeInteractionPad = transform.GetChild(2).GetComponent<BikeInteractionPad>();
+        bikeInteractionPad.onClicked += EnterBike;
         foreach (Transform child in commonSpotsRoot)
-            commonSpots.Add(child, child.position);
+            commonSpots.Add(child);
         foreach (Transform child in rareSpotsRoot)
-            rareSpots.Add(child, child.position);
+            rareSpots.Add(child);
         closestDistance = -1f;
     }
 
     private void Start()
     {
         SetAvailableBikes();
-        SpawnBikes();
+        SpawnCommonBikes();
         StartCoroutine(PlayerXSpawnedBikesDistance());
     }
 
-    public void EnterBike()
+    void EnterBike()
     {
 
-        StopCoroutine(PlayerXSpawnedBikesDistance());
-        bikeInteractionUI.gameObject.SetActive(false);
+        //StopCoroutine(PlayerXSpawnedBikesDistance());
+        StopAllCoroutines();
+        bikeInteractionPad.gameObject.SetActive(false);
 
 
         var bikeController = GameManager.instance.GetCurrentBikeController();
         var bikeData = bikeController.bikeReferences.dataContainer;
         var position = bikeController.transform.position;
         var rotation = bikeController.transform.rotation;
-        var bodyColor = bikeController.GetComponent<BikeBody>().GetBodyColor();
-        var rimColor = bikeController.GetComponent<BikeRim>().GetRimColor();
+        var bodyColor = bikeController.GetComponent<BikeComponent>().GetBodyColor();
+        var rimColor = bikeController.GetComponent<BikeComponent>().GetRimsColor();
+        lastCameraIndex = bikeController.bikeReferences.cameraController.currentCameraIndex;
         Destroy(bikeController.gameObject);
+        Destroy(bikeController.bikeReferences.cameraController);
         var instance = Instantiate(bikeData.dummyPrefab, position, rotation);
-        instance.GetComponent<BikeBody>().SetPartColor(bodyColor);
-        instance.GetComponent<BikeRim>().SetPartColor(rimColor);
+        instance.GetComponent<BikeComponent>().SetBodyColor(bodyColor);
+        instance.GetComponent<BikeComponent>().SetBodyColor(rimColor);
+        instance.GetComponent<DummyBike>().isShowcase = true;
+        instance.GetComponent<Rigidbody>().isKinematic = true;
+        instance.GetComponent<DummyBike>().enabled = true;
+        lastBike = instance;
 
+        lastSpot = closestBike.transform.parent;
         bikeData = closestBike.GetComponent<DummyBike>().GetBikeData();
         position = closestBike.transform.position;
         rotation = closestBike.transform.rotation;
-        bodyColor = closestBike.GetComponent<BikeBody>().GetBodyColor();
-        rimColor = closestBike.GetComponent<BikeRim>().GetRimColor();
+        bodyColor = closestBike.GetComponent<BikeComponent>().GetBodyColor();
+        rimColor = closestBike.GetComponent<BikeComponent>().GetRimsColor();
         Destroy(closestBike);
         instance = Instantiate(bikeData.mainPrefab, position, rotation);
-        instance.GetComponent<BikeBody>().SetPartColor(bodyColor);
-        instance.GetComponent<BikeRim>().SetPartColor(rimColor);
+        instance.GetComponent<BikeComponent>().SetBodyColor(bodyColor);
+        instance.GetComponent<BikeComponent>().SetRimsColor(rimColor);
+        var cameraController = instance.GetComponent<ArcadeBikeControllerPro>().bikeReferences.cameraController;
+        GameManager.instance.SetCameraController(cameraController);
         GameManager.instance.RaiseOnPlayerBikeChange(instance.
             GetComponent<ArcadeBikeControllerPro>());
 
-        
+        SetAvailableBikes();
+        SpawnCommonBikes();
+        StartCoroutine(PlayerXSpawnedBikesDistance());
+
     }
     void SetAvailableBikes()
     {
@@ -86,23 +104,33 @@ public class BikeSpawner : MonoBehaviour
         }
     }
 
-    void SpawnBikes()
+    void SpawnCommonBikes()
     {
-        var tempSpots = new Dictionary<Transform, Vector3>(commonSpots);
+        var tempSpots = new List<Transform>(commonSpots);
+        spawnedBikes = new List<Transform>();
+        if (lastSpot!=null)
+            tempSpots.Remove(lastSpot);
+        if (lastBike != null)
+            spawnedBikes.Add(lastBike.transform);
         foreach(var bike in spawnableBikes)
         {
-            var chosenSpot = GeneralUtilities.GetRandomElement(tempSpots);
+            var chosenSpot = GeneralUtilities.GetRandomItem(tempSpots);
             var bodyColor = GeneralUtilities.GetRandomUnityColor();
             var rimColor = GeneralUtilities.GetRandomAchromaticColor();
-
-            var instance = Instantiate(bike.dummyPrefab, chosenSpot.Value,
-                Quaternion.identity, chosenSpot.Key);
+            if (chosenSpot.childCount > 0)
+            {
+                spawnedBikes.Add(chosenSpot.GetChild(0));
+                continue;
+            }
+            var instance = Instantiate(bike.dummyPrefab, chosenSpot.position,
+                Quaternion.identity, chosenSpot);
             instance.GetComponent<BikeComponent>().SetBodyColor(bodyColor);
-            instance.GetComponent<BikeComponent>().SetRimColor(rimColor);
+            instance.GetComponent<BikeComponent>().SetRimsColor(rimColor);
             instance.GetComponent<DummyBike>().isShowcase = true;
             instance.GetComponent<Rigidbody>().isKinematic = true;
             spawnedBikes.Add(instance.transform);
         }
+        lastSpot = null;
     }
 
     private IEnumerator PlayerXSpawnedBikesDistance()
@@ -127,15 +155,24 @@ public class BikeSpawner : MonoBehaviour
                     closestBike = spawnedBikes[i].gameObject;
                 }
             }
-            bikeInteractionUI.position = new Vector3(closestBike.transform.position.x,
+            bikeInteractionPad.transform.position = new Vector3(closestBike.transform.position.x,
                 closestBike.transform.position.y +1.25f, closestBike.transform.position.z-.5f);
-            //Debug.Log("Distance -- " + Vector3.Distance(playerBike.position, closestBike.transform.position));
             if(Vector3.Distance(playerBike.position, closestBike.transform.position)<10)
-                bikeInteractionUI.gameObject.SetActive(true);
+                bikeInteractionPad.gameObject.SetActive(true);
             else
-                bikeInteractionUI.gameObject.SetActive(false);
+                bikeInteractionPad.gameObject.SetActive(false);
 
-            yield return new WaitForSeconds(1f);
+            if (lastBike != null)
+            {
+                if (Vector3.Distance(playerBike.position, lastBike.transform.position) > 100)
+                {
+                    spawnedBikes.Remove(lastBike.transform);
+                    Destroy(lastBike);
+                }
+            }
+
+            yield return new WaitForSeconds(.5f);
+            //yield return null;
         }
     }
 }

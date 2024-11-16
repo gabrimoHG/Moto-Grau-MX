@@ -7,6 +7,7 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
+    public BikeSpawner bikeSpawner { get; private set; }
     [SerializeField]ArcadeBikeControllerPro currentBikeController;
     [SerializeField] Vector3 spawnPosition;
     Quaternion spawnRotation;
@@ -20,6 +21,8 @@ public class GameManager : MonoBehaviour
     }
     public BikeAdditionalPhysics bikeAdditionalPhysics { get; private set; }
     public CameraController cameraController { get; private set; }
+    public void SetCameraController(CameraController cameraController) =>
+                this.cameraController = cameraController;
     public event Action onBikeReset = delegate { };
     public bool isPaused { get; private set; }
     private void Awake()
@@ -37,6 +40,7 @@ public class GameManager : MonoBehaviour
         bikeAdditionalPhysics = currentBikeController.GetComponent<BikeAdditionalPhysics>();
         bikeAdditionalPhysics.onDislodged += UpdateSpawnTransform;
         wheelieRating = GetComponent<WheelieRating>();
+        bikeSpawner = FindObjectOfType<BikeSpawner>();
     }
     void UpdateSpawnTransform()
     {

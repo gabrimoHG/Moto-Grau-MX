@@ -1,3 +1,4 @@
+using ArcadeBP_Pro;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,7 +10,7 @@ public class CameraAlternationButton : MonoBehaviour
     void Start()
     {
         button = GetComponent<Button>(); 
-        button.onClick.AddListener(
-            GameManager.instance.cameraController.SwitchCamera);
     }
+    public void UpdateSubscription(CameraController cameraController)=>
+        button.onClick.AddListener(cameraController.SwitchCamera);
 }

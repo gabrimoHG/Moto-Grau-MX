@@ -5,7 +5,6 @@ using Unity.VisualScripting;
 using Unity.Mathematics;
 using TMPro.Examples;
 using System.Collections;
-using Cinemachine;
 
 namespace ArcadeBP_Pro
 {
@@ -66,19 +65,23 @@ namespace ArcadeBP_Pro
         {
             transposer = cameras[currentCameraIndex].
                     GetCinemachineComponent<CinemachineTransposer>();
-            wheelieRating = FindObjectOfType<WheelieRating>();  
-            transform.parent = null;
+            wheelieRating = FindObjectOfType<WheelieRating>();
             smoothFOV = 60f;
             defaultFPSYOffset = 10;
             onWheelieFPSYOffset = -20;
-            
             //transform.name = "CameraController_" + RemovePrefix(bikeController.transform.name, "ABP_Pro");
         }
         void UpdateBikeReferences(ArcadeBikeControllerPro bikeController)
         {
             this.bikeController = bikeController;
+            //Debug.Log("Bike: " + transform.parent);
+            StopAllCoroutines();
             InitialDataSet();
+            //Debug.Log("Data updated!");
         }
+        private void OnDestroy()=>
+            GameManager.instance.onPlayerBikeChange -= UpdateBikeReferences;
+        
         void Start()
         {
             GameManager.instance.onPlayerBikeChange += UpdateBikeReferences;
@@ -92,10 +95,11 @@ namespace ArcadeBP_Pro
             thirdPersonFollowTargets = new Transform[cameras.Length - 1];
             thirdPersonLookAtTargets = new Transform[cameras.Length - 1];
             speedThresholdForShake = bikeController.bikeSettings.maxSpeed * .75f;
+            GameManager.instance.SetCameraController(this);
             bikeAdditionalPhysics = GameManager.instance.GetCurrentBikeController()
                 .GetComponent<BikeAdditionalPhysics>();
             bikeAdditionalPhysics.onDislodged += SetCameraTargetToRagdoll;
-
+            UIManager.instance.cameraAlternation.UpdateSubscription(this);
             for (int i = 0; i < cameras.Length; i++)
             {
                 cameras[i].gameObject.SetActive(i == currentCameraIndex);
@@ -112,6 +116,8 @@ namespace ArcadeBP_Pro
                     firstPersonFollowTarget = cameras[i].LookAt;
                 }
             }
+            var cameraIndex = GameManager.instance.bikeSpawner.lastCameraIndex;
+            SwitchCamera(cameraIndex);
         }
         void Update()
         {
@@ -178,7 +184,27 @@ namespace ArcadeBP_Pro
             //Debug.Log("False by switch!");
             StopShake();
         }
+        void SwitchCamera(int specificIndex)
+        {
+            cameras[currentCameraIndex].gameObject.SetActive(false);
 
+            if (specificIndex == 2)
+            {
+                isFirstPerson = true;
+                transposer = cameras[currentCameraIndex].
+                    GetCinemachineComponent<CinemachineTransposer>();
+                Vector3 followOffset = transposer.m_FollowOffset;
+                Vector3 targetPosition = transposer.FollowTarget.position +
+                    transposer.LookAtTarget.rotation * followOffset;
+                cameras[currentCameraIndex].transform.position = targetPosition;
+            }
+            else
+                isFirstPerson = false;
+            cameras[specificIndex].gameObject.SetActive(true);
+            isManuallyMoving = false;
+            //Debug.Log("False by switch!");
+            StopShake();
+        }
         void UpdateShake(float bikeSpeed)
         {
             isShaking = true;
@@ -271,8 +297,14 @@ namespace ArcadeBP_Pro
         {
             var reversePos = Vector3.zero;
             var target = transform;
+            if (firstPersonFollowTarget == null)
+                return;
             if (currentCameraIndex <= 1)
+            {
+                if(thirdPersonFollowTargets[currentCameraIndex] == null)
+                    return;
                 target = thirdPersonFollowTargets[currentCameraIndex];
+            }
             else
                 target = firstPersonFollowTarget;
 
@@ -299,7 +331,7 @@ namespace ArcadeBP_Pro
                         isRotated = true;
                     }
                 }
-
+                
                 StartCoroutine(InterpolationUtilities.MoveToTargetLinearly(target, target.localPosition,
                     reversePos, perspectiveChangeDuration, ResetIsManuallyMoving, true));
                 isManuallyMoving = true;
@@ -327,7 +359,6 @@ namespace ArcadeBP_Pro
                         isRotated = false;
                     }
                 }
-
                 StartCoroutine(InterpolationUtilities.MoveToTargetLinearly(target, target.localPosition,
                     reversePos, perspectiveChangeDuration, ResetIsManuallyMoving, true));
                 isManuallyMoving = true;

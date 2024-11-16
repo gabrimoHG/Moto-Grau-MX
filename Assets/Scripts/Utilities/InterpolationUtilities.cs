@@ -265,7 +265,27 @@ namespace HistoricGamesUtils
             onComplete?.Invoke();
         }
 
+        public static IEnumerator AlphaToTargetLinearly(Material material,
+            float targetAlpha, float duration, Action onComplete = null)
+        {
+            var color = material.color;
+            float startAlpha = color.a;
+            var elapsedTime = 0.0f;
 
+            while (elapsedTime < duration)
+            {
+                elapsedTime += Time.deltaTime;
+                float newAlpha = Mathf.Lerp(startAlpha, targetAlpha, elapsedTime / duration);
+                color.a = newAlpha;
+                material.color = color;
+
+                yield return null;
+            }
+            color.a = targetAlpha;
+            material.color = color;
+
+            onComplete?.Invoke();
+        }
         public static IEnumerator MoveToTargetLinearly(Transform rootObject, Vector3 startPos,
             Vector3 targetPos, float duration, float radius, bool isGoing,
             Action onComplete = null, bool isLocal = false)

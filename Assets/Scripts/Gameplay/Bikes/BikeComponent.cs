@@ -2,17 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using ArcadeBP_Pro;
+using System.Runtime.InteropServices.WindowsRuntime;
 public class BikeComponent : MonoBehaviour
 {
     ArcadeBikeControllerPro bikeController;
     [SerializeField]List<BikeBody> bikeBodyPieces;
+    public List<BikeBody> GetBikeBodyPieces() { return bikeBodyPieces; }
+    public Color GetBodyColor() { return bikeBodyPieces[0].GetBodyColor(); }
     public void SetBodyColor(Color color)
     {
         foreach (var bodyPiece in bikeBodyPieces)
             bodyPiece.SetPartColor(color);
     }
     [SerializeField]List<BikeRim> bikeRims;
-    public void SetRimColor(Color color)
+    public List<BikeRim> GetBikeRims() { return bikeRims; }
+    public Color GetRimsColor() { return bikeRims[0].GetRimColor(); }
+    public void SetRimsColor(Color color)
     {
         foreach(var rim in bikeRims)
             rim.SetPartColor(color);
@@ -58,10 +63,6 @@ public class BikeComponent : MonoBehaviour
         }
     }
 
-    public void EnterBike()
-    {
-        Debug.Log("Instantiate the bike!");
-    }
     private void SetObjectAlpha(Renderer renderer, float alpha)
     {
         foreach (Material mat in renderer.materials)

@@ -40,10 +40,10 @@ public class BikeAdditionalPhysics : MonoBehaviour
     [SerializeField] float cooldownDuration;
     [SerializeField] AudioSource crashAudioSource;
     [SerializeField] AudioClip smallCrashClip;
-    private GameObject bikeRagdollInstance;
+    private GameObject dummyBikeInstance;
     float damage;
 
-    public Transform GetRagdollBikeTransform() { return bikeRagdollInstance.transform; }
+    public Transform GetRagdollBikeTransform() { return dummyBikeInstance.transform; }
     public GameObject characterRagdollInstance { get; private set; }
     private Collider bikeCollider;
 
@@ -150,7 +150,8 @@ public class BikeAdditionalPhysics : MonoBehaviour
         Transform bikeTransform = bikeController.bikeReferences.leanTransform;
 
         // Instantiate the ragdolls
-        bikeRagdollInstance = Instantiate(dummyBikePrefab, bikeTransform.position, bikeTransform.rotation);
+        dummyBikeInstance = Instantiate(dummyBikePrefab, bikeTransform.position, bikeTransform.rotation);
+        dummyBikeInstance.GetComponent<DummyBike>().enabled = true;
         characterRagdollInstance = Instantiate(characterRagdollPrefab, bikeTransform.position, bikeTransform.rotation);
 
         // Match the ragdoll bones' rotations to the character's bones
@@ -169,7 +170,7 @@ public class BikeAdditionalPhysics : MonoBehaviour
         }*/
 
         // Match velocities and forces
-        Rigidbody[] bikeRagdollRigidbodies = bikeRagdollInstance.GetComponentsInChildren<Rigidbody>();
+        Rigidbody[] bikeRagdollRigidbodies = dummyBikeInstance.GetComponentsInChildren<Rigidbody>();
         Rigidbody[] characterRagdollRigidbodies = characterRagdollInstance.GetComponentsInChildren<Rigidbody>();
 
         Vector3 bikeVelocity = bikeRigidbody.velocity;
@@ -241,7 +242,7 @@ public class BikeAdditionalPhysics : MonoBehaviour
             return;
 
         // Destroy the ragdoll instances
-        Destroy(bikeRagdollInstance);
+        Destroy(dummyBikeInstance);
         Destroy(characterRagdollInstance);
 
         // Re-enable the original bike
