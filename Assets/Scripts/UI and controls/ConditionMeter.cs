@@ -1,3 +1,4 @@
+using ArcadeBP_Pro;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,10 +8,15 @@ public class ConditionMeter : Gauge
     protected override void Start()
     {
         base.Start();
-        currentBike = GameManager.instance.GetCurrentBikeController();
-        currentBike.bikeEvents.onConditionUpdate += UpdateGauge;
+        StartCoroutine(UpdateInfo());
     }
 
-    public void UpdateGauge(int bikeCondition) =>
-        TMProContent.text = bikeCondition.ToString() + " %";
+    IEnumerator UpdateInfo()
+    {
+        while (true)
+        {
+            TMProContent.text = bikeController.condition.ToString() + " %";
+            yield return new WaitForSeconds(0.1f);
+        }
+    }
 }

@@ -24,13 +24,24 @@ public class BikeStanceData : MonoBehaviour
         minColor = Color.green;
         maxColor = Color.red;
     }
-    void Start()
+    void Start() 
     {
         bikeController = FindObjectOfType<ArcadeBikeControllerPro>();
         bikeController.bikeEvents.onWheelieStart += TriggerStanceUIUpdate;
         bikeController.bikeEvents.onWheelieFinish += ResetWheelieData;
+        GameManager.instance.onPlayerBikeChange += UpdateBikeReferences;
+        silhouette.sprite = bikeController.bikeReferences.dataContainer.silhouette;
     }
 
+    public void UpdateBikeReferences(ArcadeBikeControllerPro bikeController)
+    {
+        StopAllCoroutines();
+        this.bikeController = bikeController;
+        silhouette.sprite = bikeController.bikeReferences.dataContainer.silhouette;
+        bikeController.bikeEvents.onWheelieStart += TriggerStanceUIUpdate;
+        bikeController.bikeEvents.onWheelieFinish += ResetWheelieData;
+        ResetWheelieData(false);
+    }
     void TriggerStanceUIUpdate()
         =>StartCoroutine(SetSilhouetteRotationOnWheelie());
 
@@ -52,7 +63,8 @@ public class BikeStanceData : MonoBehaviour
             yield return null;
         while (bikeController.isDoingWheelie)
         {
-            executionTime.text = wheelieRating.executionTime.ToString("F2");
+            executionTime.text = GeneralUtilities.ConvertToTimeFormat(
+                wheelieRating.executionTime).ToString();
             averageAngle.text = wheelieRating.averageAngle.ToString("F2") + "º";
 
             var targetRot = 360- wheelieRating.currentAngle;

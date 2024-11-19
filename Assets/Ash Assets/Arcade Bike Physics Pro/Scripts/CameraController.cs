@@ -44,6 +44,7 @@ namespace ArcadeBP_Pro
         [SerializeField] float secondCamStandardZOffset;
         [SerializeField] float thirdCamReverseZOffset;
         [SerializeField] float thirdCamStandardZOffset;
+        float fpsXOffset;
         [SerializeField] float perspectiveChangeDuration;
         [SerializeField] float defaultFPSYOffset;
         [SerializeField] float onWheelieFPSYOffset;
@@ -60,7 +61,7 @@ namespace ArcadeBP_Pro
         Transform[] thirdPersonFollowTargets;
         Transform[] thirdPersonLookAtTargets;
         WheelieRating wheelieRating;
-
+        float currentVelocity;
         private void Awake()
         {
             transposer = cameras[currentCameraIndex].
@@ -79,8 +80,11 @@ namespace ArcadeBP_Pro
             InitialDataSet();
             //Debug.Log("Data updated!");
         }
-        private void OnDestroy()=>
+        private void OnDestroy()
+        {
             GameManager.instance.onPlayerBikeChange -= UpdateBikeReferences;
+            bikeAdditionalPhysics.onDislodged -= SetCameraTargetToRagdoll;
+        }
         
         void Start()
         {
@@ -133,10 +137,42 @@ namespace ArcadeBP_Pro
             {
                 StopShake();
             }
-            RotationAdjustment();
+            FPSRotationAdjustment();
+            OnWheelieAdjustments();
             //UpdateFOV(bikeSpeed);
         }
-        void RotationAdjustment()
+
+        void OnWheelieAdjustments()
+        {
+            if (currentCameraIndex == 0) {
+
+                transposer = cameras[currentCameraIndex].
+                    GetCinemachineComponent<CinemachineTransposer>();
+                var initialOffset = transposer.m_FollowOffset;
+                var targetOffset = bikeController.isDoingWheelie ? 
+                    new Vector3(initialOffset.x, initialOffset.y, -2f)
+                    : new Vector3(initialOffset.x, initialOffset.y, -1f);
+                transposer.m_FollowOffset = Vector3.Lerp(transposer.m_FollowOffset,
+                    targetOffset, Time.deltaTime);
+            }
+            else if (currentCameraIndex == 2)
+            {
+                
+                transposer = cameras[currentCameraIndex].
+                    GetCinemachineComponent<CinemachineTransposer>();
+                var initialOffset = transposer.m_FollowOffset;
+                var wheelieAngle = bikeController.wheelieAngle;
+                var angleLimit = bikeController.bikeSettings.wheelieAngleLimit;
+
+                float normalizedSpeed = Mathf.Clamp01(wheelieAngle / angleLimit);
+                float targetXOffset = Mathf.Lerp(0, 0.4f, normalizedSpeed);
+                fpsXOffset = Mathf.SmoothDamp(fpsXOffset, targetXOffset, ref currentVelocity, .25f);
+                Vector3 followOffset = transposer.m_FollowOffset;
+                followOffset.x = fpsXOffset;
+                transposer.m_FollowOffset = followOffset;
+            }
+        }
+        void FPSRotationAdjustment()
         {
             var fpsCamera = cameras[currentCameraIndex];
             var composer = fpsCamera.GetCinemachineComponent<CinemachineComposer>();
@@ -144,20 +180,20 @@ namespace ArcadeBP_Pro
             if (isFirstPerson && wheelieAngle > 10 && bikeController.isDoingWheelie)
             {
                 currentFPSYOffset = Mathf.Lerp(currentFPSYOffset,
-                    onWheelieFPSYOffset, 1 * Time.deltaTime);
+                    onWheelieFPSYOffset, Time.deltaTime);
                 Vector3 offset = composer.m_TrackedObjectOffset;
                 offset.y = currentFPSYOffset;
                 composer.m_TrackedObjectOffset = offset;
             }
-            else if (isFirstPerson && wheelieAngle < 10)
+            else if (isFirstPerson)
             {
                 currentFPSYOffset = Mathf.Lerp(currentFPSYOffset,
-                    defaultFPSYOffset, 2 * Time.deltaTime);
+                    defaultFPSYOffset, Time.deltaTime);
                 Vector3 offset = composer.m_TrackedObjectOffset;
                 offset.y = currentFPSYOffset;
+                offset.x = fpsXOffset;
                 composer.m_TrackedObjectOffset = offset;
             }
-
         }
         public void SwitchCamera()
         {
@@ -191,17 +227,18 @@ namespace ArcadeBP_Pro
             if (specificIndex == 2)
             {
                 isFirstPerson = true;
-                transposer = cameras[currentCameraIndex].
+                transposer = cameras[specificIndex].
                     GetCinemachineComponent<CinemachineTransposer>();
                 Vector3 followOffset = transposer.m_FollowOffset;
                 Vector3 targetPosition = transposer.FollowTarget.position +
                     transposer.LookAtTarget.rotation * followOffset;
-                cameras[currentCameraIndex].transform.position = targetPosition;
+                cameras[specificIndex].transform.position = targetPosition;
             }
             else
                 isFirstPerson = false;
             cameras[specificIndex].gameObject.SetActive(true);
             isManuallyMoving = false;
+            currentCameraIndex = specificIndex;
             //Debug.Log("False by switch!");
             StopShake();
         }
@@ -372,6 +409,7 @@ namespace ArcadeBP_Pro
 
         public void SetCameraTargetToRagdoll()
         {
+            transform.parent = null;
             var targetTransform = transform;
             var ragdollInstance = bikeAdditionalPhysics.characterRagdollInstance;
             if (currentCameraIndex != 2)
@@ -398,6 +436,7 @@ namespace ArcadeBP_Pro
             yield return new WaitForSeconds(1.5f);
             cameras[currentCameraIndex].Follow = null;
             cameras[currentCameraIndex].LookAt = null;
+            transform.parent = bikeController.transform;
         }
 
         private string RemovePrefix(string originalName, string prefix)

@@ -150,7 +150,13 @@ public class BikeAdditionalPhysics : MonoBehaviour
         Transform bikeTransform = bikeController.bikeReferences.leanTransform;
 
         // Instantiate the ragdolls
+        var bodyColor = bikeController.GetComponent<BikeComponent>().GetBodyColor();
+        var rimColor = bikeController.GetComponent < BikeComponent>().GetRimsColor();
+        var isTailActive = bikeController.GetComponent<BikeComponent>().IsTailActive();
         dummyBikeInstance = Instantiate(dummyBikePrefab, bikeTransform.position, bikeTransform.rotation);
+        dummyBikeInstance.GetComponent<BikeComponent>().SetBodyColor(bodyColor);
+        dummyBikeInstance.GetComponent<BikeComponent>().SetRimsColor(rimColor);
+        dummyBikeInstance.GetComponent<BikeComponent>().SetIsTailActive(isTailActive);
         dummyBikeInstance.GetComponent<DummyBike>().enabled = true;
         characterRagdollInstance = Instantiate(characterRagdollPrefab, bikeTransform.position, bikeTransform.rotation);
 

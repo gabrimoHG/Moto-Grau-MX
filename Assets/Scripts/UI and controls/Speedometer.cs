@@ -7,10 +7,15 @@ public class Speedometer : Gauge
     protected override void Start()
     {
         base.Start();
-        currentBike = GameManager.instance.GetCurrentBikeController();
-        currentBike.bikeEvents.onSpeedKmphUpdate += UpdateGauge;
+        StartCoroutine(UpdateInfo());
+        
     }
-
-    void UpdateGauge(int speedKmph)=>
-        TMProContent.text = speedKmph.ToString() + " KM/H";
+    IEnumerator UpdateInfo()
+    {
+        while (true)
+        {
+            TMProContent.text = bikeController.speedKmph.ToString() + " KM/H";
+            yield return new WaitForSeconds(0.05f);
+        }
+    }
 }

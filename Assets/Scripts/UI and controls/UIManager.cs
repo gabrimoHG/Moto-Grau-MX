@@ -55,7 +55,11 @@ public class UIManager : MonoBehaviour
     {
         bikeSpawner = FindObjectOfType<BikeSpawner>();
         GameManager.instance.bikeAdditionalPhysics.onDislodged += EnableOnFallPopup;
+        GameManager.instance.onPlayerBikeChange += UpdateSubscription;
     }
+    void UpdateSubscription(ArcadeBikeControllerPro bikeController) =>
+        bikeController.GetComponent<BikeAdditionalPhysics>().onDislodged += EnableOnFallPopup;
+
     public void PanelFadeIn()
     {
         var image = panel.GetComponent<Image>();

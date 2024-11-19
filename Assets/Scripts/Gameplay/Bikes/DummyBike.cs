@@ -7,10 +7,12 @@ public class DummyBike : MonoBehaviour
 {
     [SerializeField]BikeData bikeData;
     public BikeData GetBikeData() { return bikeData; }
+    public int condition, fuelAmount;
     AudioSource engineSound;
     AudioSource skidSound;
     AudioSource crashSound;
     public bool isShowcase;
+    public bool isNew;
 
     // Start is called before the first frame update
     void Awake()

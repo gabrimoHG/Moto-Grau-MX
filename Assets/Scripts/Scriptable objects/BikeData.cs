@@ -7,4 +7,5 @@ public class BikeData : GameData
 {
     public GameObject mainPrefab;
     public GameObject dummyPrefab;
+    public Sprite silhouette;
 }

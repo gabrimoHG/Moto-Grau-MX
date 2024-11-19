@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEngine;
 using HistoricGamesUtils;
 using Unity.Burst.CompilerServices;
+using System.Linq;
 
 
 namespace ArcadeBP_Pro
@@ -343,11 +344,6 @@ namespace ArcadeBP_Pro
                 onFuelUpdate(fuelAmount);
             public event Action<int> onFuelUpdate = delegate { };
             
-            
-            public event Action<int> onSpeedKmphUpdate = delegate { };
-
-            public void RaiseOnSpeedKmphUpdate(int speedKmph)=>
-                onSpeedKmphUpdate(speedKmph);
 
         }
         public BikeEvents bikeEvents;
@@ -356,7 +352,6 @@ namespace ArcadeBP_Pro
 
 
         #region NonInspector Variables
-
         //private and public hidden variables
         private float maxFrontRaycastDistance;
         private float maxRearRaycastDistance;
@@ -398,7 +393,7 @@ namespace ArcadeBP_Pro
         public float speedLimit { get; private set; }
         public float wheelieAngle { get; private set; }
         public float stoppieAngle { get; private set; }
-
+        public bool isNew;
         public int condition { get; private set; }
         public int fuelAmount { get; private set; }
         float fuelFraction;
@@ -450,11 +445,11 @@ namespace ArcadeBP_Pro
 
         private void Start()
         {
-            condition = 100;
-            fuelAmount = 100;
-            previousFuel = 100;
+            
+            
+            //previousFuel = 100;
             UIManager.instance.fuelMeter.UpdateGauge(fuelAmount);
-            UIManager.instance.conditionMeter.UpdateGauge(condition);
+            //UIManager.instance.conditionMeter.UpdateGauge(condition);
 
             bikeReferences.bikeRb.useGravity = false;
             wasGrounded = bikeIsGrounded;
@@ -478,7 +473,24 @@ namespace ArcadeBP_Pro
             }
 
         }
+        public void SetConsumablesStatus()
+        {
+            //if (GameManager.instance.bikeSpawner.lastDummyBike == null || isNew)
+            //{
+            condition = 100;
+            fuelAmount = 100;
+            //}
+            if (GameManager.instance.bikeSpawner.lastUsedDummyBike !=null && !isNew)
+            {
 
+                var lastDummyBike = GameManager.instance.bikeSpawner.lastUsedDummyBike;
+                condition = lastDummyBike.GetComponent<DummyBike>().condition;
+                fuelAmount = lastDummyBike.GetComponent<DummyBike>().fuelAmount;
+                var isTailActive = lastDummyBike.GetComponent<BikeComponent>().IsTailActive();
+                GetComponent<BikeComponent>().SetIsTailActive(isTailActive);
+                Debug.Log("Last dummy data set!");
+            }
+        }
         private void Update()
         {
             PlaceWheelOnGround(bikeReferences.frontWheelParent, bikeReferences.frontWheel, bikeGeometry.frontWheelRadius, bikeGeometry.frontWheelAngle,
@@ -487,7 +499,7 @@ namespace ArcadeBP_Pro
             {
                 //UnityEngine.Debug.Log("During wheelie "+ (maxRearRaycastDistance * 1.5f));
                 PlaceWheelOnGround(bikeReferences.rearWheelParent, bikeReferences.rearWheel, bikeGeometry.rearWheelRadius, bikeGeometry.rearWheelAngle,
-                                   maxRearRaycastDistance*2f, out rearWheelHit, out rearWheelIsGrounded, out groundNormal_rear);
+                                   maxRearRaycastDistance*2, out rearWheelHit, out rearWheelIsGrounded, out groundNormal_rear);
             }
             else
             {
@@ -575,7 +587,6 @@ namespace ArcadeBP_Pro
             UpdateGearShift();
             //UnityEngine.Debug.Log(mechanicalGear);
             speedKmph = Mathf.RoundToInt(localBikeVelocity.magnitude * 3.6f);
-            bikeEvents.RaiseOnSpeedKmphUpdate(speedKmph);
 
         }
 
@@ -906,7 +917,7 @@ namespace ArcadeBP_Pro
             {
                 float currentSpeed = localBikeVelocity.z;
                 float targetAcceleration = 0f;
-
+                isNew = false;
                 if (bikeInput.handBrake > 0)
                 {
                     targetAcceleration = currentSpeed >= 0 ? -bikeSettings.handBrakeDeceleration :
@@ -1144,7 +1155,7 @@ namespace ArcadeBP_Pro
             {
                 // Perform burnout
                 // You can add particle effects or sound effects here to simulate the burnout
-
+                isNew = false;
                 ApplyBrake();
                 isApplyingBrake = true;
 
@@ -1465,6 +1476,8 @@ namespace ArcadeBP_Pro
                     bikeEvents.RaiseOnWheelieFinish(true);
                     isDoingWheelie = false;
                 }
+                else
+                    wheelieAngle = bikeReferences.wheelieTransform.localRotation.eulerAngles.x;
             }
             //UnityEngine.Debug.Log("Is rear wheel grounded: " + rearWheelIsGrounded);
         }

@@ -18,3 +18,4 @@ MonoBehaviour:
     type: 3}
   dummyPrefab: {fileID: 6807432397228577837, guid: acdcb72bb0a2af447a9dc2b02871cc11,
     type: 3}
+  silhouette: {fileID: 21300000, guid: f52b8eb5545d1f6459e8e6526eb76f7c, type: 3}

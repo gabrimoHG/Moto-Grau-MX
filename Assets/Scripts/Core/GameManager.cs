@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour
     public void RaiseOnPlayerBikeChange(ArcadeBikeControllerPro arcadeBikeController)
     {
         currentBikeController = arcadeBikeController;
+        arcadeBikeController.SetConsumablesStatus();
         onPlayerBikeChange(arcadeBikeController);
     }
     public BikeAdditionalPhysics bikeAdditionalPhysics { get; private set; }
@@ -32,15 +33,17 @@ public class GameManager : MonoBehaviour
     }
     void InitialSet()
     {
+        bikeSpawner = FindObjectOfType<BikeSpawner>();
         spawnRotation = Quaternion.Euler(0, -90, 0);
         var bikeInstance = Instantiate(currentBikeController, spawnPosition, spawnRotation);
         currentBikeController = bikeInstance;
         currentBikeController.bikeReferences.cameraController.gameObject.SetActive(true);
+        currentBikeController.SetConsumablesStatus();
         cameraController = bikeInstance.bikeReferences.cameraController;
         bikeAdditionalPhysics = currentBikeController.GetComponent<BikeAdditionalPhysics>();
         bikeAdditionalPhysics.onDislodged += UpdateSpawnTransform;
         wheelieRating = GetComponent<WheelieRating>();
-        bikeSpawner = FindObjectOfType<BikeSpawner>();
+        
     }
     void UpdateSpawnTransform()
     {

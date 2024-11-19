@@ -1028,7 +1028,6 @@ Transform:
   m_Children:
   - {fileID: 4570095627442651383}
   - {fileID: 3663066645859543536}
-  - {fileID: 7205870952786515804}
   - {fileID: 7188815221308649261}
   m_Father: {fileID: 2934873001960179382}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1577,7 +1576,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &7205870952786515804
 Transform:
   m_ObjectHideFlags: 0
@@ -1586,12 +1585,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6453703857899241229}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -0.000044944838, y: 0.013231601, z: 0.0054011336}
+  m_LocalRotation: {x: -0, y: 1.577722e-30, z: -7.495598e-31, w: 1}
+  m_LocalPosition: {x: 0, y: 0.0737, z: -0.0644}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 8719764612202723095}
+  m_Father: {fileID: 7188815221308649261}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &6820171113891422000
 MeshFilter:
@@ -1722,7 +1721,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bikeData: {fileID: 11400000, guid: 351ee47bcbe92bf4bb6c10d273937fe1, type: 2}
+  condition: 0
+  fuelAmount: 0
   isShowcase: 0
+  isNew: 1
 --- !u!114 &686348944212032993
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1735,9 +1737,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9751e102ff0778d43b27cfed322e028f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bikeBodyPieces:
+  colorableBodyParts:
   - {fileID: 3939001039342124408}
   - {fileID: 759011737881235875}
+  tailSection: {fileID: 7186817789018369707}
+  leftMirror: {fileID: 0}
+  rightMirror: {fileID: 0}
   bikeRims:
   - {fileID: 4275347694334582373}
   - {fileID: 5621106575041030985}
@@ -1875,7 +1880,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &7188815221308649261
 Transform:
   m_ObjectHideFlags: 0
@@ -1885,10 +1890,11 @@ Transform:
   m_GameObject: {fileID: 7186817789018369707}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -0.000044944838, y: 0.013231601, z: 0.0054011336}
+  m_LocalPosition: {x: -0, y: 0.7591, z: -0.7037}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 7205870952786515804}
   m_Father: {fileID: 8719764612202723095}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &1160477840756898924

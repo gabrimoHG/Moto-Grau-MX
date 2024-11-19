@@ -6,7 +6,7 @@ using ArcadeBP_Pro;
 
 public class Gauge : MonoBehaviour
 {
-    protected ArcadeBikeControllerPro currentBike;
+    protected ArcadeBikeControllerPro bikeController;
     protected TextMeshProUGUI TMProContent;
     protected virtual void Awake()
     {
@@ -14,6 +14,10 @@ public class Gauge : MonoBehaviour
     }
     protected virtual void Start()
     {
-        
+        GameManager.instance.onPlayerBikeChange += UpdateBikeController;
+        bikeController = GameManager.instance.GetCurrentBikeController();
     }
+
+    public void UpdateBikeController(ArcadeBikeControllerPro bikeController) =>
+        this.bikeController = bikeController;
 }

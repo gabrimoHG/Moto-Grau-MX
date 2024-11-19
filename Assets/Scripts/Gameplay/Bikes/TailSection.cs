@@ -18,6 +18,8 @@ public class TailSection : MonoBehaviour
     BoxCollider boxCollider;
     AudioSource scrapingSound;
     Coroutine stopScrapingAudio, tailStatus;
+    [SerializeField]ParticleSystem collisionParticle;
+    Coroutine disableParticleCoroutine;
     
     private void Awake()
     {
@@ -86,6 +88,7 @@ public class TailSection : MonoBehaviour
                 isBroken = true;
                 tailStatus = null;
                 isScraping = false;
+                scrapingSound.Stop();
 
             }
             yield return null;
@@ -102,6 +105,13 @@ public class TailSection : MonoBehaviour
         {
             StopCoroutine(stopScrapingAudio);
             stopScrapingAudio = null;
+        }
+        if(!collisionParticle.isPlaying)
+            collisionParticle.Play();
+        if (disableParticleCoroutine != null) 
+        {
+            StopCoroutine(disableParticleCoroutine);
+            disableParticleCoroutine = null;
         }
     }
     private void OnTriggerStay(Collider other)
@@ -125,8 +135,14 @@ public class TailSection : MonoBehaviour
             return;
         if (stopScrapingAudio == null)
             stopScrapingAudio = StartCoroutine(StopScrapingAudio());
-
         isScraping = false;
+        if (disableParticleCoroutine != null)
+        {
+            StopCoroutine(disableParticleCoroutine);
+            disableParticleCoroutine = null;
+        }
+        disableParticleCoroutine = StartCoroutine(DisableParticles());
+        //Invoke(nameof(DisableParticles), 1);
     }
 
     private IEnumerator StopScrapingAudio()
@@ -137,5 +153,13 @@ public class TailSection : MonoBehaviour
             scrapingSound.Stop();
 
         stopScrapingAudio = null;
+    }
+
+    IEnumerator DisableParticles()
+    {
+        yield return new WaitForSeconds(scrapeTickInterval/3);
+
+        collisionParticle.Stop();
+        disableParticleCoroutine = null;
     }
 }

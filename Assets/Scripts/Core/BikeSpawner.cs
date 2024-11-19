@@ -3,9 +3,11 @@ using Cinemachine.Utility;
 using HistoricGamesUtils;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using Unity.VisualScripting.Antlr3.Runtime.Tree;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Rendering;
 
 public class BikeSpawner : MonoBehaviour
@@ -17,6 +19,7 @@ public class BikeSpawner : MonoBehaviour
     List<Transform> spawnedBikes;
     GameObject lastBike;
     Transform lastSpot;
+    public GameObject lastUsedDummyBike { get; private set; }
     public int lastCameraIndex { get; private set; }
     public BikeInteractionPad bikeInteractionPad { get; private set; }
     public GameObject closestBike {  get; private set; }
@@ -59,18 +62,38 @@ public class BikeSpawner : MonoBehaviour
         var bodyColor = bikeController.GetComponent<BikeComponent>().GetBodyColor();
         var rimColor = bikeController.GetComponent<BikeComponent>().GetRimsColor();
         lastCameraIndex = bikeController.bikeReferences.cameraController.currentCameraIndex;
+        var condition = bikeController.condition;
+        var fuelAmount = bikeController.fuelAmount;
+        var isNew = bikeController.isNew;
+        var isTailActive = bikeController.GetComponent<BikeComponent>().IsTailActive();
+        //Debug.Log(bikeController + " isNew: " + isNew);
+        Destroy(bikeController.skidmarkController.gameObject);
         Destroy(bikeController.gameObject);
-        Destroy(bikeController.bikeReferences.cameraController);
+        //Destroy(bikeController.bikeReferences.cameraController);
         var instance = Instantiate(bikeData.dummyPrefab, position, rotation);
+        if (condition != 100 || fuelAmount != 100)
+        {
+            lastUsedDummyBike = instance;
+            lastUsedDummyBike.GetComponent<DummyBike>().condition = condition;
+            lastUsedDummyBike.GetComponent<DummyBike>().fuelAmount = fuelAmount;
+            lastUsedDummyBike.GetComponent<DummyBike>().isNew = isNew;
+            lastUsedDummyBike.GetComponent<BikeComponent>().SetIsTailActive(isTailActive);
+        }
+        /*else
+            lastDummyBike = null;*/
         instance.GetComponent<BikeComponent>().SetBodyColor(bodyColor);
         instance.GetComponent<BikeComponent>().SetBodyColor(rimColor);
         instance.GetComponent<DummyBike>().isShowcase = true;
+        instance.GetComponent<DummyBike>().isNew = isNew;
+        //Debug.Log(instance + " isNew: " + isNew);
         instance.GetComponent<Rigidbody>().isKinematic = true;
         instance.GetComponent<DummyBike>().enabled = true;
         lastBike = instance;
 
         lastSpot = closestBike.transform.parent;
         bikeData = closestBike.GetComponent<DummyBike>().GetBikeData();
+        isNew = closestBike.GetComponent<DummyBike>().isNew;
+        //Debug.Log(closestBike + " isNew: " + isNew);
         position = closestBike.transform.position;
         rotation = closestBike.transform.rotation;
         bodyColor = closestBike.GetComponent<BikeComponent>().GetBodyColor();
@@ -79,7 +102,10 @@ public class BikeSpawner : MonoBehaviour
         instance = Instantiate(bikeData.mainPrefab, position, rotation);
         instance.GetComponent<BikeComponent>().SetBodyColor(bodyColor);
         instance.GetComponent<BikeComponent>().SetRimsColor(rimColor);
-        var cameraController = instance.GetComponent<ArcadeBikeControllerPro>().bikeReferences.cameraController;
+        var cameraController = instance.GetComponent<ArcadeBikeControllerPro>().
+            bikeReferences.cameraController;
+        instance.GetComponent<ArcadeBikeControllerPro>().isNew = isNew;
+        //Debug.Log(instance + " isNew: " + isNew);
         GameManager.instance.SetCameraController(cameraController);
         GameManager.instance.RaiseOnPlayerBikeChange(instance.
             GetComponent<ArcadeBikeControllerPro>());
@@ -107,6 +133,7 @@ public class BikeSpawner : MonoBehaviour
     void SpawnCommonBikes()
     {
         var tempSpots = new List<Transform>(commonSpots);
+        var bikeController = GameManager.instance.GetCurrentBikeController();
         spawnedBikes = new List<Transform>();
         if (lastSpot!=null)
             tempSpots.Remove(lastSpot);
@@ -122,6 +149,8 @@ public class BikeSpawner : MonoBehaviour
                 spawnedBikes.Add(chosenSpot.GetChild(0));
                 continue;
             }
+            if (Vector3.Distance(bikeController.transform.position, chosenSpot.position) < 10)
+                continue;
             var instance = Instantiate(bike.dummyPrefab, chosenSpot.position,
                 Quaternion.identity, chosenSpot);
             instance.GetComponent<BikeComponent>().SetBodyColor(bodyColor);
@@ -164,7 +193,7 @@ public class BikeSpawner : MonoBehaviour
 
             if (lastBike != null)
             {
-                if (Vector3.Distance(playerBike.position, lastBike.transform.position) > 100)
+                if (Vector3.Distance(playerBike.position, lastBike.transform.position) > 50)
                 {
                     spawnedBikes.Remove(lastBike.transform);
                     Destroy(lastBike);

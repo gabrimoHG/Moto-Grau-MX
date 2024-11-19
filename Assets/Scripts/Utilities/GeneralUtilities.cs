@@ -26,6 +26,13 @@ namespace HistoricGamesUtils
 
             return string.Format("{0}:{1:D2}", minutes, seconds);
         }
+
+        public static string ConvertToTimeFormat(float timeInSeconds)
+        {
+            int seconds = Mathf.FloorToInt(timeInSeconds);
+            int milliseconds = Mathf.FloorToInt((timeInSeconds - seconds) * 100);
+            return $"{seconds}:{milliseconds:00}";
+        }
         public static float ConvertCurrencyToFloat(string currencyString,
             string exclusionString)
         {
@@ -159,7 +166,6 @@ namespace HistoricGamesUtils
             }
             angle = Mathf.Abs(angle);
             //Debug.Log("--------------------------");
-
             return angle;
         }
 

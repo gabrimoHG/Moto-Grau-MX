@@ -22,6 +22,15 @@ public class WheelieRating : MonoBehaviour
         bikeController = FindObjectOfType<ArcadeBikeControllerPro>();
         bikeController.bikeEvents.onWheelieStart += TriggerWheelieStatistics;
         bikeController.bikeEvents.onWheelieFinish += ShowStatistics;
+        GameManager.instance.onPlayerBikeChange += UpdateReferences;
+    }
+
+    void UpdateReferences(ArcadeBikeControllerPro bikeController)
+    {
+        StopAllCoroutines();
+        this.bikeController = bikeController;
+        bikeController.bikeEvents.onWheelieStart += TriggerWheelieStatistics;
+        bikeController.bikeEvents.onWheelieFinish += ShowStatistics;
     }
 
     void TriggerWheelieStatistics() => StartCoroutine(RecordWheelieStatistics());
