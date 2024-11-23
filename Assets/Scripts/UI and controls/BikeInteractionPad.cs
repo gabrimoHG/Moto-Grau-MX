@@ -41,9 +41,24 @@ public class BikeInteractionPad : MonoBehaviour
     IEnumerator EnableButtonVisibility()
     {
         var material = GetComponent<MeshRenderer>().material;
+        var camera = Camera.main;
         while (true)
         {
-            if (bikeSpawner.closestDistance <= 5)
+            if (GameManager.instance == null)
+                yield return new WaitForSeconds(.1f);
+            var cameraPosition = camera.transform.position;
+            var cameraForward = camera.transform.forward;
+
+            // Calculate the direction vector to the button
+            Vector3 directionToButton = (transform.position - cameraPosition).normalized;
+
+            // Calculate the distance to the button
+            float distanceToButton = Vector3.Distance(transform.position, cameraPosition);
+
+            // Calculate the angle between the player's forward direction and the button
+            float angleToButton = Vector3.Angle(cameraForward, directionToButton);
+
+            if (bikeSpawner.closestDistance <= 5 && angleToButton <= 15)
             {
                 if (material.color.a < 1)
                     StartCoroutine(InterpolationUtilities.AlphaToTargetLinearly(material, 1, .5f));
@@ -51,26 +66,65 @@ public class BikeInteractionPad : MonoBehaviour
             else
             {
                 if (material.color.a > 0)
-                    StartCoroutine(InterpolationUtilities.AlphaToTargetLinearly(material, 0, .5f));
+                    StartCoroutine(InterpolationUtilities.AlphaToTargetLinearly(material, 0, .25f));
             }
-
-            yield return new WaitForSeconds(1);
+            //yield return null;
+            yield return new WaitForSeconds(.1f);
         }
     }
     private IEnumerator RotateButtonTowardsPlayer()
     {
         var camera = Camera.main;
+
         while (true)
         {
-            Vector3 directionToPlayer = camera.transform.position - transform.position;
+            if (bikeSpawner.closestBike == null)
+                yield return new WaitForSeconds(.1f);
+            var closestBikeTransform = bikeSpawner.closestBike.transform;
+
+            // Calculate direction to player
+            Vector3 directionToPlayer = camera.transform.position - closestBikeTransform.position;
             directionToPlayer.y = 0;
 
-            if (directionToPlayer != Vector3.zero)
+            // Normalize the direction to get proportional positioning around the bike
+            Vector3 normalizedDirection = directionToPlayer.normalized;
+
+            // Calculate target position dynamically around the bike
+            Vector3 targetPosition = closestBikeTransform.position + normalizedDirection;// * radius;
+            targetPosition.y = closestBikeTransform.position.y + 0.5f; // Keep quad slightly above the bike
+
+            // Update the quad's position
+            transform.position = targetPosition;
+
+            // Rotate to face the player
+            Vector3 lookDirection = camera.transform.position - transform.position;
+            lookDirection.y = 0;
+
+            if (lookDirection != Vector3.zero)
             {
-                Quaternion targetRotation = Quaternion.LookRotation(directionToPlayer);
+                Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
                 transform.rotation = targetRotation;
             }
 
+            /*Vector3 directionToPlayer = camera.transform.position - closestBikeTransform.position;
+            directionToPlayer.y = 0;
+
+            Vector3 localDirection = closestBikeTransform.InverseTransformDirection(directionToPlayer);
+            float sideSign = Mathf.Sign(localDirection.x);
+            float frontBackSign = Mathf.Sign(localDirection.z);
+
+            Vector3 targetPosition = closestBikeTransform.position +
+                                     new Vector3(sideSign * .25f, 0.5f, frontBackSign*1);
+            transform.position = targetPosition;
+
+            Vector3 lookDirection = camera.transform.position - transform.position;
+            lookDirection.y = 0;
+
+            if (lookDirection != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
+                transform.rotation = targetRotation;
+            }*/
             yield return new WaitForSeconds(.1f);
         }
     }
@@ -98,7 +152,7 @@ public class BikeInteractionPad : MonoBehaviour
                     UIManager.instance.PanelFadeIn();
             }
                 
-            yield return new WaitForSeconds(.01f);
+            yield return null;
             //yield return null;
         }
     }

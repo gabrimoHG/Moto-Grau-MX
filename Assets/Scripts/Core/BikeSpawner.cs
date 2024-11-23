@@ -49,11 +49,9 @@ public class BikeSpawner : MonoBehaviour
 
     void EnterBike()
     {
-
         //StopCoroutine(PlayerXSpawnedBikesDistance());
         StopAllCoroutines();
         bikeInteractionPad.gameObject.SetActive(false);
-
 
         var bikeController = GameManager.instance.GetCurrentBikeController();
         var bikeData = bikeController.bikeReferences.dataContainer;
@@ -82,7 +80,7 @@ public class BikeSpawner : MonoBehaviour
         /*else
             lastDummyBike = null;*/
         instance.GetComponent<BikeComponent>().SetBodyColor(bodyColor);
-        instance.GetComponent<BikeComponent>().SetBodyColor(rimColor);
+        instance.GetComponent<BikeComponent>().SetRimsColor(rimColor);
         instance.GetComponent<DummyBike>().isShowcase = true;
         instance.GetComponent<DummyBike>().isNew = isNew;
         //Debug.Log(instance + " isNew: " + isNew);
@@ -90,7 +88,7 @@ public class BikeSpawner : MonoBehaviour
         instance.GetComponent<DummyBike>().enabled = true;
         lastBike = instance;
 
-        lastSpot = closestBike.transform.parent;
+        //lastSpot = closestBike.transform.parent;
         bikeData = closestBike.GetComponent<DummyBike>().GetBikeData();
         isNew = closestBike.GetComponent<DummyBike>().isNew;
         //Debug.Log(closestBike + " isNew: " + isNew);
@@ -134,34 +132,54 @@ public class BikeSpawner : MonoBehaviour
     {
         var tempSpots = new List<Transform>(commonSpots);
         var bikeController = GameManager.instance.GetCurrentBikeController();
+
+        RemoveClosesSpot(bikeController, tempSpots);
         spawnedBikes = new List<Transform>();
-        if (lastSpot!=null)
-            tempSpots.Remove(lastSpot);
+        /*if (lastSpot!=null)
+            tempSpots.Remove(lastSpot);*/
         if (lastBike != null)
+        {
             spawnedBikes.Add(lastBike.transform);
+            //Debug.Log("Last bike added!");
+        }
+
         foreach(var bike in spawnableBikes)
         {
             var chosenSpot = GeneralUtilities.GetRandomItem(tempSpots);
-            var bodyColor = GeneralUtilities.GetRandomUnityColor();
-            var rimColor = GeneralUtilities.GetRandomAchromaticColor();
+            
             if (chosenSpot.childCount > 0)
             {
                 spawnedBikes.Add(chosenSpot.GetChild(0));
+                //Debug.Log("Bike created previously added!");
                 continue;
             }
-            if (Vector3.Distance(bikeController.transform.position, chosenSpot.position) < 10)
-                continue;
+            //if (Vector3.Distance(bikeController.transform.position, chosenSpot.position) < 10)
+                //continue;
             var instance = Instantiate(bike.dummyPrefab, chosenSpot.position,
                 Quaternion.identity, chosenSpot);
+            var bodyColor = GeneralUtilities.GetRandomUnityColor();
+            var rimColor = GeneralUtilities.GetRandomAchromaticColor();
             instance.GetComponent<BikeComponent>().SetBodyColor(bodyColor);
             instance.GetComponent<BikeComponent>().SetRimsColor(rimColor);
             instance.GetComponent<DummyBike>().isShowcase = true;
             instance.GetComponent<Rigidbody>().isKinematic = true;
             spawnedBikes.Add(instance.transform);
+            //Debug.Log("New instantiated bike added!");
         }
-        lastSpot = null;
+        //lastSpot = null;
     }
-
+    void RemoveClosesSpot(ArcadeBikeControllerPro bikeController,
+        List<Transform> spawnSpots)
+    {
+        for (int i = spawnSpots.Count - 1; i >= 0; i--) 
+        {
+            if (Vector3.Distance(bikeController.transform.position, spawnSpots[i].position) < 10)
+            {
+                spawnSpots.Remove(spawnSpots[i]);
+                break;
+            }
+        }
+    }
     private IEnumerator PlayerXSpawnedBikesDistance()
     {
         var playerBike = GameManager.instance.GetCurrentBikeController().transform;
@@ -184,8 +202,8 @@ public class BikeSpawner : MonoBehaviour
                     closestBike = spawnedBikes[i].gameObject;
                 }
             }
-            bikeInteractionPad.transform.position = new Vector3(closestBike.transform.position.x,
-                closestBike.transform.position.y +1.25f, closestBike.transform.position.z-.5f);
+            /*bikeInteractionPad.transform.position = new Vector3(closestBike.transform.position.x,
+                closestBike.transform.position.y +.5f, closestBike.transform.position.z);*/
             if(Vector3.Distance(playerBike.position, closestBike.transform.position)<10)
                 bikeInteractionPad.gameObject.SetActive(true);
             else

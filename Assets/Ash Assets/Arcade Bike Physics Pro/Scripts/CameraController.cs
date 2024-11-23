@@ -5,6 +5,7 @@ using Unity.VisualScripting;
 using Unity.Mathematics;
 using TMPro.Examples;
 using System.Collections;
+using UnityEngine.Rendering.PostProcessing;
 
 namespace ArcadeBP_Pro
 {
@@ -68,8 +69,8 @@ namespace ArcadeBP_Pro
                     GetCinemachineComponent<CinemachineTransposer>();
             wheelieRating = FindObjectOfType<WheelieRating>();
             smoothFOV = 60f;
-            defaultFPSYOffset = 10;
-            onWheelieFPSYOffset = -20;
+            //defaultFPSYOffset = 10;
+            //onWheelieFPSYOffset = -20;
             //transform.name = "CameraController_" + RemovePrefix(bikeController.transform.name, "ABP_Pro");
         }
         void UpdateBikeReferences(ArcadeBikeControllerPro bikeController)
@@ -89,6 +90,7 @@ namespace ArcadeBP_Pro
         void Start()
         {
             GameManager.instance.onPlayerBikeChange += UpdateBikeReferences;
+            Camera.main.GetComponent<PostProcessLayer>().enabled= false;
             InitialDataSet();
         }
 

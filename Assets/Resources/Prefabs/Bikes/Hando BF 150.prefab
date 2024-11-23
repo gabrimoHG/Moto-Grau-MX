@@ -445,7 +445,7 @@ MonoBehaviour:
     additionalPhysics: {fileID: 4492227397321706729}
     tailSection: {fileID: 2017239676185967210}
   bikeGeometry:
-    frontWheelRadius: 0.32159433
+    frontWheelRadius: 0.29
     frontWheelWidth: 0.0520712
     rearWheelRadius: 0.33121777
     rearWheelWidth: 0.06764027
@@ -464,7 +464,7 @@ MonoBehaviour:
     reverseMaxSpeed: 1
     acceleration: 2
     reverseAcceleration: 2
-    deceleration: 5
+    deceleration: 6
     handBrakeDeceleration: 4
     maxTurnAngle: 40
     useLerpTurning: 1
@@ -483,10 +483,11 @@ MonoBehaviour:
     burnoutRotationSpeed: 60
     burnoutSmoothness: 1
     wheelieAngle: 150
-    wheelieAngleLimit: 60
+    wheelieAngleLimit: 75
     wheelieMinSpeed: 4
     wheelieMaxSpeed: 25
     minWheelieDropSpeed: 80
+    rearWheelRayZOffset: 0.0022
     brokenOrNoGasSpeedLimit: 5
     fuelConsumptionRate: 0.3
     extraConsumptionFloor: 0
@@ -512,11 +513,11 @@ MonoBehaviour:
       - serializedVersion: 3
         time: 0.9953141
         value: 0.25174522
-        inSlope: -0.001532621
-        outSlope: -0.001532621
+        inSlope: -0.17511253
+        outSlope: -0.17511253
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0.12564205
+        inWeight: 0.09136204
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
@@ -657,23 +658,23 @@ MonoBehaviour:
         inWeight: 0
         outWeight: 0.0190343
       - serializedVersion: 3
-        time: 0.20223291
-        value: 0.7638919
-        inSlope: 1.0437993
-        outSlope: 1.0437993
+        time: 0.19724536
+        value: 0.7598082
+        inSlope: 0.79905236
+        outSlope: 0.79905236
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.081375234
-        outWeight: 0.032579195
+        outWeight: 0.1778266
       - serializedVersion: 3
-        time: 0.49902007
-        value: 0.9508269
-        inSlope: 0.23540698
-        outSlope: 0.23540698
+        time: 0.3694625
+        value: 0.9192142
+        inSlope: 0.39862546
+        outSlope: 0.39862546
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.124639206
+        inWeight: 0.30177343
+        outWeight: 0.09110928
       - serializedVersion: 3
         time: 1
         value: 1
@@ -699,8 +700,8 @@ MonoBehaviour:
         inWeight: 0
         outWeight: 0.577496
       - serializedVersion: 3
-        time: 0.23859064
-        value: 0.8266282
+        time: 0.20044367
+        value: 0.79930735
         inSlope: -3.2645824
         outSlope: -3.2645824
         tangentMode: 0
@@ -708,14 +709,14 @@ MonoBehaviour:
         inWeight: 0.33333334
         outWeight: 0.20132817
       - serializedVersion: 3
-        time: 0.36312687
-        value: 0.40118465
-        inSlope: -1.8636512
-        outSlope: -1.8636512
+        time: 0.40456733
+        value: 0.2999354
+        inSlope: -1.338577
+        outSlope: -1.338577
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.06396958
+        inWeight: 0.2758349
+        outWeight: 0.102146834
       - serializedVersion: 3
         time: 0.99835205
         value: 0.002357483
@@ -735,7 +736,7 @@ MonoBehaviour:
     maxPitch: 1
     SkidSound: {fileID: 6944772750743538981}
     scrapingSound: {fileID: 5248725412595698746}
-  gearSpeeds: 050000000a0000000f0000001400000019000000
+  gearSpeeds: 04000000090000000e0000001300000019000000
   mechanicalGear: 1
   logicalGear: 0
   projectedForwardOffsetAngle: 0
@@ -933,13 +934,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 587033507889809011}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.08715578, y: 0, z: 0, w: 0.9961947}
+  m_LocalRotation: {x: 0.043619405, y: 0, z: 0, w: 0.9990483}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6854640595527367804}
-  m_LocalEulerAnglesHint: {x: 10, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 5, y: 0, z: 0}
 --- !u!1 &718958536477536875
 GameObject:
   m_ObjectHideFlags: 0
@@ -5342,8 +5343,8 @@ MonoBehaviour:
   thirdCamReverseZOffset: -0.25
   thirdCamStandardZOffset: -0.1
   perspectiveChangeDuration: 0.5
-  defaultFPSYOffset: 0
-  onWheelieFPSYOffset: 0
+  defaultFPSYOffset: 10
+  onWheelieFPSYOffset: -30
 --- !u!1 &5463084591287109828
 GameObject:
   m_ObjectHideFlags: 0
@@ -5972,13 +5973,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5852795731187481041}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.08715578, y: 0, z: 0, w: 0.9961947}
+  m_LocalRotation: {x: 0.043619405, y: 0, z: 0, w: 0.9990483}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6854640595527367804}
-  m_LocalEulerAnglesHint: {x: 10, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 5, y: 0, z: 0}
 --- !u!1 &5860141237900021632
 GameObject:
   m_ObjectHideFlags: 0
@@ -6537,13 +6538,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6255060857768034689}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.13052616, y: 0, z: 0, w: 0.9914449}
+  m_LocalRotation: {x: 0.08715578, y: 0, z: 0, w: 0.9961947}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6854640595527367804}
-  m_LocalEulerAnglesHint: {x: 15, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 10, y: 0, z: 0}
 --- !u!1 &6336455299918046892
 GameObject:
   m_ObjectHideFlags: 0
@@ -6877,14 +6878,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6488709383285422899}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0.24446127, y: 0, z: 0, w: 0.9696591}
   m_LocalPosition: {x: -2.646978e-23, y: -0.6133195, z: -0.0009523034}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3971019710134026068}
   m_Father: {fileID: 6398349206237465775}
-  m_LocalEulerAnglesHint: {x: -28.621, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 28.3, y: 0, z: 0}
 --- !u!1 &6497507262200568933
 GameObject:
   m_ObjectHideFlags: 0
@@ -7042,13 +7043,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6537875734812969800}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.17364816, y: 0, z: 0, w: 0.9848078}
+  m_LocalRotation: {x: 0.13052616, y: 0, z: 0, w: 0.9914449}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6854640595527367804}
-  m_LocalEulerAnglesHint: {x: 20, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 15, y: 0, z: 0}
 --- !u!1 &6594702519755393674
 GameObject:
   m_ObjectHideFlags: 0
@@ -7829,8 +7830,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.15917969, y: 0.023961231, z: 0.2946087}
-  m_Center: {x: -0.0029417276, y: 0.004388506, z: -0.069835804}
+  m_Size: {x: 0.15917969, y: 0.037260484, z: 0.34073302}
+  m_Center: {x: -0.0029417276, y: 0.011037659, z: -0.092898525}
 --- !u!114 &2017239676185967210
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9159,7 +9160,7 @@ MonoBehaviour:
   m_Lens:
     FieldOfView: 60.008144
     OrthographicSize: 5
-    NearClipPlane: 0.4
+    NearClipPlane: 0.25
     FarClipPlane: 1000
     Dutch: 0
     ModeOverride: 0
@@ -9264,7 +9265,7 @@ Transform:
   m_GameObject: {fileID: 9158631687615596070}
   serializedVersion: 2
   m_LocalRotation: {x: 0.043619405, y: 0, z: 0, w: 0.9990483}
-  m_LocalPosition: {x: -1.1529208e-16, y: 0.9419992, z: -0.37097147}
+  m_LocalPosition: {x: -0, y: 0.946, z: -0.412}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

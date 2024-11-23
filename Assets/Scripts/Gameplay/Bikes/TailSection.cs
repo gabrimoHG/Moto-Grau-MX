@@ -42,10 +42,19 @@ public class TailSection : MonoBehaviour
         var bike = GameManager.instance.GetCurrentBikeController();
         scrapingSound = bike.bikeAudio.scrapingSound;
     }
+
+    void OnDestroy()
+    {
+        StopAllCoroutines();
+        stopScrapingAudio = null;
+        tailStatus=null;
+        disableParticleCoroutine = null;
+    }
     IEnumerator CheckTailStatus()
     {
         while(!isBroken)
         {
+            //Debug.Log("Checking...");
             if (tailResistance == 0)
             {
                 boxCollider.isTrigger = false;
@@ -96,38 +105,40 @@ public class TailSection : MonoBehaviour
     }
     private void OnTriggerEnter(Collider other)
     {
-        if (isBroken)
+        if (isBroken || !GameManager.instance.GetCurrentBikeController().isDoingWheelie)
             return;
         if (!scrapingSound.isPlaying)
             scrapingSound.Play();
-
         if (stopScrapingAudio != null)
         {
             StopCoroutine(stopScrapingAudio);
             stopScrapingAudio = null;
         }
-        if(!collisionParticle.isPlaying)
+        isScraping = true;
+        tailResistance -= (100f / resistanceDuration) * Time.deltaTime;
+        tailResistance = Mathf.Max(tailResistance, 0f);
+
+        
+        if (!collisionParticle.isPlaying)
             collisionParticle.Play();
         if (disableParticleCoroutine != null) 
         {
             StopCoroutine(disableParticleCoroutine);
             disableParticleCoroutine = null;
         }
-    }
-    private void OnTriggerStay(Collider other)
-    {
-        if (isBroken)
-            return;
-        isScraping = true;
-        tailResistance -= (100f / resistanceDuration) * Time.deltaTime;
-        if(!scrapingSound.isPlaying)
-            scrapingSound.Play();
-        tailResistance = Mathf.Max(tailResistance, 0f);
-        if (stopScrapingAudio != null)
-            StopCoroutine(StopScrapingAudio());
         if (tailStatus == null)
             tailStatus = StartCoroutine(CheckTailStatus());
         stopScrapingAudio = StartCoroutine(StopScrapingAudio());
+    }
+    private void OnTriggerStay(Collider other)
+    {
+        if (isBroken )
+            return;
+        
+        
+        if (stopScrapingAudio != null)
+            StopCoroutine(StopScrapingAudio());
+       
     }
     private void OnTriggerExit(Collider other)
     {
@@ -136,6 +147,8 @@ public class TailSection : MonoBehaviour
         if (stopScrapingAudio == null)
             stopScrapingAudio = StartCoroutine(StopScrapingAudio());
         isScraping = false;
+        tailStatus = null;
+        //StopCoroutine(CheckTailStatus());
         if (disableParticleCoroutine != null)
         {
             StopCoroutine(disableParticleCoroutine);
@@ -147,8 +160,15 @@ public class TailSection : MonoBehaviour
 
     private IEnumerator StopScrapingAudio()
     {
+        if (!gameObject.activeSelf)
+        {
+            if (scrapingSound.isPlaying)
+                scrapingSound.Stop();
+            stopScrapingAudio = null;
+            yield break;
+        }
         yield return new WaitForSeconds(scrapeTickInterval);
-
+        
         if (scrapingSound.isPlaying)
             scrapingSound.Stop();
 

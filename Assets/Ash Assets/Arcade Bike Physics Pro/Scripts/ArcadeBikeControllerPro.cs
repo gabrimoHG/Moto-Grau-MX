@@ -234,6 +234,8 @@ namespace ArcadeBP_Pro
             public float wheelieMinSpeed;
             public float wheelieMaxSpeed;
             public float minWheelieDropSpeed;
+            public float rearWheelRayZOffset;
+            //public float frontWheelRayReductionRange;
             public float brokenOrNoGasSpeedLimit;
             public float fuelConsumptionRate;
             public float extraConsumptionFloor;
@@ -389,6 +391,7 @@ namespace ArcadeBP_Pro
 
         public SkidmarkController skidmarkController { get; private set; }
 
+        public bool isRestricted;
         public int speedKmph { get; private set; }
         public float speedLimit { get; private set; }
         public float wheelieAngle { get; private set; }
@@ -401,6 +404,7 @@ namespace ArcadeBP_Pro
         private ParticleSystem tireSmoke_ps;
         Vector3 lastValidPosition;
         bool isWaitingOnReset;
+        
         #endregion
 
 
@@ -488,22 +492,46 @@ namespace ArcadeBP_Pro
                 fuelAmount = lastDummyBike.GetComponent<DummyBike>().fuelAmount;
                 var isTailActive = lastDummyBike.GetComponent<BikeComponent>().IsTailActive();
                 GetComponent<BikeComponent>().SetIsTailActive(isTailActive);
-                Debug.Log("Last dummy data set!");
+                //Debug.Log("Last dummy data set!");
             }
         }
         private void Update()
         {
+            /*if (bikeInput.steeringLeft != 0||bikeInput.steeringRight!=0)
+            {
+                float adjustedFrontRaycastDistance = bikeGeometry.rearWheelRadius *
+                (1 / Mathf.Cos(bikeGeometry.rearWheelAngle * Mathf.Deg2Rad))
+                                   + bikeGeometry.rearWheelRadius;
+                if (bikeInput.steeringLeft != 0)
+                {
+                    adjustedFrontRaycastDistance -=  Mathf.Abs(bikeInput.steeringLeft) *
+                        bikeSettings.frontWheelRayReductionRange;
+                }
+                if (bikeInput.steeringRight != 0)
+                {
+                    adjustedFrontRaycastDistance -= Mathf.Abs(bikeInput.steeringRight) *
+                        bikeSettings.frontWheelRayReductionRange;
+                }
+                Debug.Log(adjustedFrontRaycastDistance);
+                PlaceWheelOnGround(bikeReferences.frontWheelParent, bikeReferences.frontWheel, bikeGeometry.frontWheelRadius, bikeGeometry.frontWheelAngle,
+                                   adjustedFrontRaycastDistance, out frontWheelHit, out frontWheelIsGrounded, out groundNormal_front);
+            }
+            else
+            {*/
             PlaceWheelOnGround(bikeReferences.frontWheelParent, bikeReferences.frontWheel, bikeGeometry.frontWheelRadius, bikeGeometry.frontWheelAngle,
-                               maxFrontRaycastDistance, out frontWheelHit, out frontWheelIsGrounded, out groundNormal_front);
+                maxFrontRaycastDistance, out frontWheelHit, out frontWheelIsGrounded, out groundNormal_front, true);
+            //}
+            //Debug.Log("Adjusted value " + adjustedRearRaycastDistance);
+            //if (wheelieAngle > 40)
+                //Debug.Break();
+            //Debug.Log(wheelieAngle);
             if (rearWheelIsGrounded && isDoingWheelie)
             {
-                //UnityEngine.Debug.Log("During wheelie "+ (maxRearRaycastDistance * 1.5f));
                 PlaceWheelOnGround(bikeReferences.rearWheelParent, bikeReferences.rearWheel, bikeGeometry.rearWheelRadius, bikeGeometry.rearWheelAngle,
-                                   maxRearRaycastDistance*2, out rearWheelHit, out rearWheelIsGrounded, out groundNormal_rear);
+                                   maxRearRaycastDistance, out rearWheelHit, out rearWheelIsGrounded, out groundNormal_rear);
             }
             else
             {
-                //UnityEngine.Debug.Log("Normal " + maxRearRaycastDistance);
                 PlaceWheelOnGround(bikeReferences.rearWheelParent, bikeReferences.rearWheel, bikeGeometry.rearWheelRadius, bikeGeometry.rearWheelAngle,
                                    maxRearRaycastDistance, out rearWheelHit, out rearWheelIsGrounded, out groundNormal_rear);
             }
@@ -591,6 +619,20 @@ namespace ArcadeBP_Pro
         }
 
 
+
+
+        #endregion
+
+        #region Fuel and condition
+        public void Refuel(int refuelAmount) 
+        { 
+            fuelAmount += refuelAmount;
+            //bikeEvents.RaiseOnFuelUpdate(fuelAmount);
+        }
+        public void Repair(int repairAmount)
+        {
+            condition += repairAmount;
+        }
         void ConsumeFuel()
         {
             if (bikeInput.accelerate > 0)
@@ -607,11 +649,11 @@ namespace ArcadeBP_Pro
                 if (fuelFraction >= 1f)
                 {
                     int fuelToSubtract = Mathf.FloorToInt(fuelFraction);
-                    Debug.Log(fuelToSubtract);
+                    //Debug.Log(fuelToSubtract);
                     fuelAmount = Mathf.Max(0, fuelAmount - fuelToSubtract);
                     fuelFraction -= fuelToSubtract;
                 }
-            }   
+            }
 
             if (fuelAmount != previousFuel)
             {
@@ -620,33 +662,28 @@ namespace ArcadeBP_Pro
             }
         }
 
-        IEnumerator WaitToShowDelayUI()
-        {
-            isWaitingOnReset = true;
-            yield return new WaitForSeconds(5);
-            UIManager.instance.EnableResetBikeButton();
-        }
 
         public void ResetToLastValidPosition()
         {
             transform.position = lastValidPosition;
             isWaitingOnReset = false;
         }
-
         #endregion
 
         #region Gravity
 
         private void AddGravity()
         {
-            //if (bikeIsGrounded)
-            //{
-            //    bikeReferences.BikeRb.AddForce(-groundNormal * bikeSettings.gravity * bikeReferences.BikeRb.mass, ForceMode.Acceleration);
-            //}
-            //else
-            //{
-            //    bikeReferences.BikeRb.AddForce(Vector3.down * bikeSettings.gravity * bikeReferences.BikeRb.mass, ForceMode.Acceleration);
-            //}
+            /*if (bikeIsGrounded)
+            {
+                bikeReferences.bikeRb.AddForce(-groundNormal * bikeSettings.gravity
+                    * bikeReferences.bikeRb.mass, ForceMode.Acceleration);
+            }
+            else
+            {
+                bikeReferences.bikeRb.AddForce(Vector3.down * bikeSettings.gravity
+                    * bikeReferences.bikeRb.mass, ForceMode.Acceleration);
+            }*/
 
 
             //use above logic if you want bike to stick to ground if its grounded instead of below logic.
@@ -659,10 +696,17 @@ namespace ArcadeBP_Pro
         #region Wheels Placement
 
         private void PlaceWheelOnGround(Transform wheelParent, Transform wheel, float radius, float wheelAngle, float maxRaycastDistance,
-                                        out RaycastHit hit, out bool isGrounded, out Vector3 groundNormal)
+                                        out RaycastHit hit, out bool isGrounded, out Vector3 groundNormal, bool isFront = false)
         {
+            var zOffset = 0f;
+            if (isDoingWheelie)
+            {
+                zOffset = Mathf.Abs(wheelieAngle * bikeSettings.rearWheelRayZOffset);
+                //Debug.Log(zOffset);
+            }
             Vector3 raycastPosition = wheelParent.position + wheelParent.up * radius;
-            Vector3 raycastDirection = -wheelParent.up;
+            raycastPosition += wheelParent.forward * zOffset;
+            Vector3 raycastDirection = Vector3.down;
 
             if (Physics.Raycast(raycastPosition, raycastDirection, out hit, maxRaycastDistance,
                 bikeSettings.drivableLayerMask, QueryTriggerInteraction.Ignore))
@@ -673,18 +717,27 @@ namespace ArcadeBP_Pro
                 isGrounded = true;
                 groundNormal = hit.normal;
             }
-            else
+            else if (Physics.Raycast(raycastPosition, raycastDirection, out hit, maxRaycastDistance*1.1f,
+                bikeSettings.drivableLayerMask, QueryTriggerInteraction.Ignore))
+            {
+                float h = radius * (1 / Mathf.Cos(wheelAngle * Mathf.Deg2Rad));
+                float localOffset = hit.distance - h - radius;
+                wheel.localPosition = new Vector3(0, -localOffset, 0);
+                isGrounded = true;
+                groundNormal = hit.normal;
+            }
+            else 
             {
                 wheel.localPosition = Vector3.Lerp(wheel.localPosition, new Vector3(0, 0, 0),
-                    20 * Time.deltaTime);
+                    200 * Time.deltaTime);
                 isGrounded = false;
                 groundNormal = Vector3.up;
             }
 
-            // debug raycast
+            
             Debug.DrawRay(raycastPosition, raycastDirection * maxRaycastDistance, Color.red);
-            if(maxRaycastDistance>9f && !rearWheelIsGrounded)
-                Debug.Break();
+            /*if(wheelieAngle>50)
+                Debug.Break();*/
         }
 
         #endregion
@@ -735,6 +788,8 @@ namespace ArcadeBP_Pro
             {
                 projectedBikeForward = Vector3.ProjectOnPlane(bikeReferences.rotator.forward,
                     Vector3.up).normalized;
+
+                //projectedBikeUp = Vector3.Lerp(Vector3.up, groundNormal_rear, .1f).normalized;
                 projectedBikeUp = Vector3.up;
             }
             else if (!frontWheelIsGrounded && !rearWheelIsGrounded)
@@ -1079,10 +1134,16 @@ namespace ArcadeBP_Pro
         {
             float speedRatio = Mathf.Abs(localBikeVelocity.z) / bikeSettings.maxSpeed;
             float steeringAngle = bikeSettings.maxTurnAngle * bikeCurves.steeringCurve.Evaluate(speedRatio);
+            if (isReversing)
+            {
+                steeringAngle = bikeSettings.maxTurnAngle * 
+                    (bikeCurves.steeringCurve.Evaluate(speedRatio) * 1.4f);
+            }
             currentSteerAngle = steeringAngle;
 
 
-            if (bikeInput.handBrake > 0) { steeringAngle = (-bikeSettings.maxTurnAngle); }
+            if (bikeInput.handBrake > 0)
+                steeringAngle = (-bikeSettings.maxTurnAngle); 
             Quaternion targetRotation = Quaternion.Euler(0, steeringAngle * direction, 0);
             Quaternion slerpRotation = Quaternion.Slerp(bikeReferences.bikeSteering.localRotation,
                 targetRotation, Time.deltaTime * bikeSettings.steeringAnimationSpeed);
@@ -1272,62 +1333,12 @@ namespace ArcadeBP_Pro
 
         private void WheelieAnimation()
         {
-            /*bool snapWheelie = false;
-            float speedFactor = Mathf.InverseLerp(bikeSettings.wheelieMinSpeed, 
-                bikeSettings.wheelieMaxSpeed, localBikeVelocity.magnitude);
-
-            if ((bikeInput.wheelie < 0 || isDoingWheelie) && rearWheelIsGrounded &&
-                localBikeVelocity.magnitude >= bikeSettings.wheelieMinSpeed)
-            {
-                float surfaceAngle_rear = Vector3.Angle(groundNormal_rear, Vector3.up);
-                float surfaceAngle_front = Vector3.Angle(groundNormal_front, Vector3.up);
-                float surfaceAngle = Vector3.Angle(groundNormal, Vector3.up);
-                float acceptableAngleForWheelie = 20f;
-                
-                if (surfaceAngle > acceptableAngleForWheelie ||
-                    surfaceAngle_front > acceptableAngleForWheelie ||
-                    surfaceAngle_rear > acceptableAngleForWheelie)
-                {
-                    if (isDoingWheelie)
-                        snapWheelie = true;
-                    isDoingWheelie = false;
-
-                    //UnityEngine.Debug.Log("Wheelie set to false");
-                }
-
-                if (bikeInput.accelerate>0)
-                {
-                    float bikeSpeed = localBikeVelocity.magnitude;
-                    float normalizedSpeed = bikeSpeed / bikeSettings.maxSpeed;
-                    float wheelieEase = bikeCurves.wheelieEasinessCurve.Evaluate(normalizedSpeed);
-                    float wheelieFactor = Mathf.Clamp01(-bikeInput.wheelie) * wheelieEase;
-                    //UnityEngine.Debug.Log($"Speed: {localBikeVelocity.magnitude}, WheelieEase: {wheelieEase}");
-                    float engineFactor = 0;
-                    if(bikeReferences.cameraController.isFirstPerson)
-                        engineFactor = Mathf.InverseLerp(0.5f, 1f, bikeAudio.engineSound.volume*2);
-                    else
-                        engineFactor = Mathf.InverseLerp(0.5f, 1f, bikeAudio.engineSound.volume);
-                    float targetAngle = Mathf.Lerp(0, -bikeSettings.wheelieAngle, engineFactor *
-                        wheelieFactor);
-                    float currentAngle = bikeReferences.wheelieTransform.localRotation.eulerAngles.x;
-                    float newAngle = Mathf.LerpAngle(currentAngle, targetAngle, Time.deltaTime *
-                        bikeSettings.wheelieAnimationSpeed);
-                    
-                    // Apply the new angle
-                    bikeReferences.wheelieTransform.localRotation = Quaternion.Euler(newAngle, 0, 0);
-                    wheelieAngle = GeneralUtilities.ConvertAngleToFirstHalfStandard(
-                        bikeReferences.wheelieTransform.localRotation.eulerAngles.x);
-                    //Debug.Log("Target angle " + wheelieAngle);
-                    if (!isDoingWheelie)
-                        bikeEvents.RaiseOnWheelieStart();
-                    isDoingWheelie = true;
-                }*/
             bool snapWheelie = false;
             float speedFactor = Mathf.InverseLerp(bikeSettings.wheelieMinSpeed,
                 bikeSettings.wheelieMaxSpeed, localBikeVelocity.magnitude);
 
             if ((bikeInput.wheelie < 0 || isDoingWheelie) && rearWheelIsGrounded &&
-                localBikeVelocity.magnitude >= bikeSettings.wheelieMinSpeed)
+                localBikeVelocity.magnitude >= bikeSettings.wheelieMinSpeed && !isRestricted)
             {
                 float surfaceAngle_rear = Vector3.Angle(groundNormal_rear, Vector3.up);
                 float surfaceAngle_front = Vector3.Angle(groundNormal_front, Vector3.up);
@@ -1395,9 +1406,12 @@ namespace ArcadeBP_Pro
                     if (currentAngle > 180) currentAngle -= 360;
 
                     // Calculate an inverted angle factor for drop acceleration (stronger closer to ground)
-                    float angleFactor = 1 - Mathf.Clamp01(Mathf.Abs(currentAngle) / bikeSettings.wheelieAngleLimit);
-                    float speedInfluence = Mathf.Lerp(1.0f, 0.5f, Mathf.Clamp01(speedFactor / bikeSettings.maxSpeed));
-                    float weightInfluence = bikeSettings.frontalWeight * 8 * angleFactor * speedInfluence;
+                    float angleFactor = 1 - Mathf.Clamp01(Mathf.Abs(currentAngle) /
+                        bikeSettings.wheelieAngleLimit);
+                    float speedInfluence = Mathf.Lerp(1.0f, 0.5f, Mathf.Clamp01(
+                        speedFactor / bikeSettings.maxSpeed));
+                    float weightInfluence = bikeSettings.frontalWeight *
+                        8 * angleFactor * speedInfluence;
 
                     // Progressive acceleration: increases as the bike gets closer to zero
                     float dropAcceleration = (bikeSettings.gravity + weightInfluence) * (1 + angleFactor);
@@ -1409,6 +1423,11 @@ namespace ArcadeBP_Pro
                     // Update the bike's wheelie rotation
                     bikeReferences.wheelieTransform.localRotation = Quaternion.Euler(newAngle, 0, 0);
 
+                    if (frontWheelIsGrounded)
+                    {
+                        isDoingWheelie = false;
+                        bikeEvents.RaiseOnWheelieFinish(true);
+                    }
                 }
                 if (frontWheelIsGrounded && bikeInput.wheelie==0 && isDoingWheelie)
                 {
@@ -1422,7 +1441,7 @@ namespace ArcadeBP_Pro
                     //Debug.Log("Angulo de "+ wheelieAngle);
                     //Debug.Log("Limite de " + bikeSettings.wheelieAngleLimit);
 #if UNITY_EDITOR_64
-                    Debug.Log("Caiu por ângulo!");
+                    //Debug.Log("Caiu por ângulo!");
 #endif
                     bikeReferences.additionalPhysics.DislodgePlayer(isDoingWheelie);
                     bikeEvents.RaiseOnWheelieFinish(false);
@@ -1433,7 +1452,7 @@ namespace ArcadeBP_Pro
                 {
                     //Debug.Log(wheelieAngle);
 #if UNITY_EDITOR_64
-                    Debug.Log("Caiu por velocidade!");
+                    //Debug.Log("Caiu por velocidade!");
 #endif
                     bikeReferences.additionalPhysics.DislodgePlayer(isDoingWheelie);
                     bikeEvents.RaiseOnWheelieFinish(false);
@@ -1477,7 +1496,10 @@ namespace ArcadeBP_Pro
                     isDoingWheelie = false;
                 }
                 else
-                    wheelieAngle = bikeReferences.wheelieTransform.localRotation.eulerAngles.x;
+                {
+                    wheelieAngle = GeneralUtilities.ConvertAngleToFirstHalfStandard(
+                           bikeReferences.wheelieTransform.localRotation.eulerAngles.x);
+                }
             }
             //UnityEngine.Debug.Log("Is rear wheel grounded: " + rearWheelIsGrounded);
         }
