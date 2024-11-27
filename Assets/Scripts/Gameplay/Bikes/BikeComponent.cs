@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using ArcadeBP_Pro;
 using System.IO;
+using Unity.VisualScripting;
 public class BikeComponent : MonoBehaviour
 {
     ArcadeBikeControllerPro bikeController;
     [SerializeField]List<BikeBody> colorableBodyParts;
     List<GameObject> detachableParts;
+    public List<GameObject> models { get; private set; }
     [SerializeField] GameObject tailSection, leftMirror, rightMirror;
     public bool IsTailActive() { return tailSection.activeSelf; }
     public void SetIsTailActive(bool isActive)=>tailSection.SetActive(isActive);
@@ -30,6 +32,7 @@ public class BikeComponent : MonoBehaviour
         foreach(var rim in bikeRims)
             rim.SetPartColor(color);
     }
+    [SerializeField] bool isModelOnly;
     private void Awake()
     {
         bikeController = GetComponent<ArcadeBikeControllerPro>();
@@ -40,8 +43,14 @@ public class BikeComponent : MonoBehaviour
             detachableParts.Add(leftMirror);
         if (rightMirror)
             detachableParts.Add(rightMirror);
+        if (isModelOnly)
+        {
+            models = new List<GameObject>();
+            foreach (Transform child in transform.GetChild(0))
+                models.Add(child.gameObject);
+        }
     }
-    public void SetDetachablesPartsFix() =>
+    public void TriggerDetachablesPartsFix() =>
         StartCoroutine(FadeDetachablePartsIn(1));
     IEnumerator FadeDetachablePartsIn(float fadeDuration)
     {
@@ -52,25 +61,31 @@ public class BikeComponent : MonoBehaviour
             if (detachablePart.activeSelf)
                 continue;
             fadeableParts.Add(detachablePart);
+            //SetObjectAlpha(fadeableParts[0].GetComponent<MeshRenderer>(), 0);
             if (detachablePart.transform.GetChild(0).GetComponent<TailSection>() != null)
             {
                 var tailSection = detachablePart.transform.
                     GetChild(0).GetComponent<TailSection>();
+                tailSection.ResetTailData();
                 if (tailSection.additionalPieces.Count > 0)
                 {
                     foreach (var piece in tailSection.additionalPieces)
                     {
+                        if (piece.GetComponent<MeshRenderer>() == null)
+                            continue;
                         fadeableParts.Add(piece.gameObject);
-                        SetObjectAlpha(piece.GetComponent<Renderer>(), 0);
+                        //SetObjectAlpha(piece.GetComponent<MeshRenderer>(), 0);
+                        //piece.gameObject.SetActive(true);
                     }
                 }
+                //detachablePart.gameObject.SetActive(true);
             }
-
-            foreach (var element in fadeableParts)
+            foreach (var fadeablePart in fadeableParts)
             {
-                var currentRenderer = element.GetComponent<Renderer>();
+                var currentRenderer = fadeablePart.GetComponent<MeshRenderer>();
                 foreach (var mat in currentRenderer.materials)
-                    SetMaterialToFade(mat);
+                    SetFadeableMaterial(mat);
+                fadeablePart.SetActive(true);
 
                 float elapsedTime = 0f;
                 while (elapsedTime < fadeDuration)
@@ -98,11 +113,12 @@ public class BikeComponent : MonoBehaviour
                 Color color = mat.color;
                 color.a = alpha;
                 mat.color = color;
+                mat.SetFloat("_Mode", 2);
             }
         }
     }
 
-    private void SetMaterialToFade(Material mat)
+    private void SetFadeableMaterial(Material mat)
     {
         mat.SetFloat("_Mode", 2);  // Set render mode to Fade
         mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);

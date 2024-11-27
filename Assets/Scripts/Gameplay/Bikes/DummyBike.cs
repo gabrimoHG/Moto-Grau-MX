@@ -6,7 +6,8 @@ using static ArcadeBP_Pro.ArcadeBikeControllerPro;
 public class DummyBike : MonoBehaviour
 {
     [SerializeField]BikeData bikeData;
-    public BikeData GetBikeData() { return bikeData; }
+    
+    public BikeData BikeData { get { return bikeData; } }
     public int condition, fuelAmount;
     AudioSource engineSound;
     AudioSource skidSound;
@@ -17,9 +18,14 @@ public class DummyBike : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        engineSound = transform.GetChild(4).GetChild(0).GetComponent<AudioSource>();
-        skidSound = transform.GetChild(4).GetChild(1).GetComponent<AudioSource>();
-        crashSound = transform.GetChild(4).GetChild(2).GetComponent<AudioSource>();
+        if (transform.childCount > 4)
+        {
+            engineSound = transform.GetChild(4).GetChild(0).GetComponent<AudioSource>();
+            skidSound = transform.GetChild(4).GetChild(1).GetComponent<AudioSource>();
+            crashSound = transform.GetChild(4).GetChild(2).GetComponent<AudioSource>();
+        }
+        else
+            engineSound = transform.GetChild(1).GetChild(0).GetComponent<AudioSource>();
     }
     private void Start()
     {

@@ -23,6 +23,7 @@ public class CollectibleController : MonoBehaviour
             foreach (Transform element in zone.transform)
             {
                 elements.Add(element.GetComponent<CollectibleItem>());
+                //Debug.Log(element + " subscribed!");
                 element.GetComponent<CollectibleItem>().onCollected += TriggerDisableTemporarily;
             }
         }

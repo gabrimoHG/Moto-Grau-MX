@@ -41,6 +41,7 @@ namespace ArcadeBP_Pro
 
         [SerializeField] float firstCamReverseZOffset;
         [SerializeField] float firstCamStandardZOffset;
+        [SerializeField] float firstCamOnWheelieZOffset;
         [SerializeField] float secondCamReverseZOffset;
         [SerializeField] float secondCamStandardZOffset;
         [SerializeField] float thirdCamReverseZOffset;
@@ -152,7 +153,7 @@ namespace ArcadeBP_Pro
                     GetCinemachineComponent<CinemachineTransposer>();
                 var initialOffset = transposer.m_FollowOffset;
                 var targetOffset = bikeController.isDoingWheelie ? 
-                    new Vector3(initialOffset.x, initialOffset.y, -2f)
+                    new Vector3(initialOffset.x, initialOffset.y, firstCamOnWheelieZOffset)
                     : new Vector3(initialOffset.x, initialOffset.y, -1f);
                 transposer.m_FollowOffset = Vector3.Lerp(transposer.m_FollowOffset,
                     targetOffset, Time.deltaTime);

@@ -8,8 +8,8 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
     public BikeSpawner bikeSpawner { get; private set; }
-    [SerializeField]ArcadeBikeControllerPro currentBikeController;
-    [SerializeField] Vector3 spawnPosition;
+    ArcadeBikeControllerPro currentBikeController;
+    Vector3 spawnPosition;
     Quaternion spawnRotation;
     public event Action<ArcadeBikeControllerPro> onPlayerBikeChange = delegate { };
     public WheelieRating wheelieRating { get; private set; }
@@ -29,20 +29,29 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         SetSingletonInstance();
-        InitialSet();
-    }
-    void InitialSet()
-    {
+        wheelieRating = GetComponent<WheelieRating>();
         bikeSpawner = FindObjectOfType<BikeSpawner>();
+        LoadInitialBike();
+    }
+    void LoadInitialBike()
+    {
+        var selectedBike = MainMenuManager.instance.bikeSelectionScreen.currentBikeIndex;
+        
+        //currentBikeController = bikeData.mainPrefab.GetComponent<ArcadeBikeControllerPro>();
+        var selectedBodyColor = new Color();
+        var selectedRimsColor = new Color();
+        spawnPosition = bikeSpawner.SortInitialSpawnPoint();
         spawnRotation = Quaternion.Euler(0, -90, 0);
         var bikeInstance = Instantiate(currentBikeController, spawnPosition, spawnRotation);
         currentBikeController = bikeInstance;
         currentBikeController.bikeReferences.cameraController.gameObject.SetActive(true);
         currentBikeController.SetConsumablesStatus();
+        currentBikeController.GetComponent<BikeComponent>().SetBodyColor(selectedBodyColor);
+        currentBikeController.GetComponent<BikeComponent>().SetRimsColor(selectedRimsColor);
         cameraController = bikeInstance.bikeReferences.cameraController;
         bikeAdditionalPhysics = currentBikeController.GetComponent<BikeAdditionalPhysics>();
         bikeAdditionalPhysics.onDislodged += UpdateSpawnTransform;
-        wheelieRating = GetComponent<WheelieRating>();
+        
         
     }
     void UpdateSpawnTransform()

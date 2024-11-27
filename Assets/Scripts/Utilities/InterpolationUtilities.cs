@@ -286,6 +286,29 @@ namespace HistoricGamesUtils
 
             onComplete?.Invoke();
         }
+
+        public static IEnumerator ShaderPropertyToTargetLinearly(Material material, string property,
+            float targetValue, float duration, Action onComplete = null)
+        {
+            //var color = material.color;
+            float startValue = material.GetFloat(property);
+            var elapsedTime = 0.0f;
+
+            while (elapsedTime < duration)
+            {
+                elapsedTime += Time.deltaTime;
+                float newValue = Mathf.Lerp(startValue, targetValue, elapsedTime / duration);
+                //color.a = newValue;
+                material.SetFloat(property, newValue);
+
+                yield return null;
+            }
+            material.SetFloat(property, targetValue);
+            //color.a = targetValue;
+            //material.color = color;
+
+            onComplete?.Invoke();
+        }
         public static IEnumerator MoveToTargetLinearly(Transform rootObject, Vector3 startPos,
             Vector3 targetPos, float duration, float radius, bool isGoing,
             Action onComplete = null, bool isLocal = false)
@@ -369,5 +392,240 @@ namespace HistoricGamesUtils
             }
             onComplete?.Invoke();
         }
+
+        public static IEnumerator FadeOutObject(GameObject fadeableObject, float duration,
+            Action onComplete = null)
+        {
+            var materialsData = new List<(Material material, Color initialColor)>();
+                Renderer renderer = fadeableObject.GetComponent<Renderer>();
+
+            foreach (var material in renderer.materials)
+            {
+                if (material.HasProperty("_Color"))
+                {
+                    materialsData.Add((material, material.color));
+                    if (material.HasProperty("_Mode"))
+                    {
+                        material.SetInt("_Mode", 2);
+                        material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                        material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                        material.SetFloat("_ZWrite", 0);
+                        material.DisableKeyword("_ALPHATEST_ON");
+                        material.EnableKeyword("_ALPHABLEND_ON");
+                        material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                        material.renderQueue = 3000; // Set render queue for transparency
+                    }
+                }
+            }
+
+            float elapsedTime = 0f;
+            while (elapsedTime < duration)
+            {
+                elapsedTime += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsedTime / duration);
+
+                foreach (var (material, initialColor) in materialsData)
+                {
+                    Color newColor = new Color(initialColor.r, initialColor.g, initialColor.b, Mathf.Lerp(initialColor.a, 0f, t));
+                    material.color = newColor;
+                }
+
+                yield return null;
+            }
+
+            foreach (var (material, initialColor) in materialsData)
+            {
+                Color finalColor = new Color(initialColor.r, initialColor.g, initialColor.b, 0f);
+                material.color = finalColor;
+            }
+
+            onComplete?.Invoke();
+        }
+
+        public static IEnumerator FadeOutObject(List<GameObject> fadeableObjects, float duration,
+            Action onComplete = null)
+        {
+            var materialsData = new List<(Material material, Color initialColor)>();
+            foreach (var fadeableObject in fadeableObjects)
+            {
+                Renderer renderer = fadeableObject.GetComponent<Renderer>();
+                if (renderer == null) continue;
+
+                foreach (var material in renderer.materials)
+                {
+                    if (material.HasProperty("_Color"))
+                    {
+                        materialsData.Add((material, material.color));
+                        if (material.HasProperty("_Mode"))
+                        {
+                            material.SetInt("_Mode", 2);
+                            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            material.SetFloat("_ZWrite", 0);
+                            material.DisableKeyword("_ALPHATEST_ON");
+                            material.EnableKeyword("_ALPHABLEND_ON");
+                            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                            material.renderQueue = 3000; // Set render queue for transparency
+                        }
+                    }
+                }
+            }
+
+            float elapsedTime = 0f;
+            while (elapsedTime < duration)
+            {
+                elapsedTime += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsedTime / duration);
+
+                foreach (var (material, initialColor) in materialsData)
+                {
+                    Color newColor = new Color(initialColor.r, initialColor.g, initialColor.b, Mathf.Lerp(initialColor.a, 0f, t));
+                    material.color = newColor;
+                }
+
+                yield return null;
+            }
+
+            foreach (var (material, initialColor) in materialsData)
+            {
+                Color finalColor = new Color(initialColor.r, initialColor.g, initialColor.b, 0f);
+                material.color = finalColor;
+            }
+
+            onComplete?.Invoke();
+        }
+
+
+        public static IEnumerator FadeInObject(GameObject fadeableObject, float duration,
+            Action onComplete = null)
+        {
+            var materialsData = new List<(Material material, Color initialColor)>();
+
+            Renderer renderer = fadeableObject.GetComponent<Renderer>();
+
+            foreach (var material in renderer.materials)
+            {
+                if (material.HasProperty("_Color"))
+                {
+                    materialsData.Add((material, material.color));
+                    if (material.HasProperty("_Mode"))
+                    {
+                        material.SetInt("_Mode", 2);
+                        material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                        material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                        material.SetFloat("_ZWrite", 0);
+                        material.DisableKeyword("_ALPHATEST_ON");
+                        material.EnableKeyword("_ALPHABLEND_ON");
+                        material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                        material.renderQueue = 3000;
+                    }
+                }
+            }
+
+            float elapsedTime = 0f;
+            while (elapsedTime < duration)
+            {
+                elapsedTime += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsedTime / duration);
+
+                foreach (var (material, initialColor) in materialsData)
+                {
+                    Color newColor = new Color(initialColor.r, initialColor.g, initialColor.b, Mathf.Lerp(initialColor.a, 1f, t));
+                    material.color = newColor;
+                }
+
+                yield return null;
+            }
+
+            foreach (var (material, initialColor) in materialsData)
+            {
+                Color finalColor = new Color(initialColor.r, initialColor.g, initialColor.b, 1f);
+                material.color = finalColor;
+
+                if (material.HasProperty("_Mode"))
+                {
+                    material.SetInt("_Mode", 0);
+                    material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                    material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
+                    material.SetFloat("_ZWrite", 1);
+                    material.DisableKeyword("_ALPHATEST_ON");
+                    material.DisableKeyword("_ALPHABLEND_ON");
+                    material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                    material.renderQueue = -1;
+                }
+            }
+
+            onComplete?.Invoke();
+        }
+
+        public static IEnumerator FadeInObject(List<GameObject> fadeableObjects, float duration,
+            Action onComplete = null)
+        {
+            // Store the initial colors and materials for all objects
+            var materialsData = new List<(Material material, Color initialColor)>();
+            foreach (var fadeableObject in fadeableObjects)
+            {
+                Renderer renderer = fadeableObject.GetComponent<Renderer>();
+                if (renderer == null) continue;
+
+                foreach (var material in renderer.materials)
+                {
+                    if (material.HasProperty("_Color"))
+                    {
+                        materialsData.Add((material, material.color));
+                        // Ensure the material is in Fade mode for transparency
+                        if (material.HasProperty("_Mode"))
+                        {
+                            material.SetInt("_Mode", 2);
+                            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            material.SetFloat("_ZWrite", 0);
+                            material.DisableKeyword("_ALPHATEST_ON");
+                            material.EnableKeyword("_ALPHABLEND_ON");
+                            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                            material.renderQueue = 3000; // Set render queue for transparency
+                        }
+                    }
+                }
+            }
+
+            // Perform fade-in for all materials together
+            float elapsedTime = 0f;
+            while (elapsedTime < duration)
+            {
+                elapsedTime += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsedTime / duration);
+
+                foreach (var (material, initialColor) in materialsData)
+                {
+                    Color newColor = new Color(initialColor.r, initialColor.g, initialColor.b, Mathf.Lerp(initialColor.a, 1f, t));
+                    material.color = newColor;
+                }
+
+                yield return null;
+            }
+
+            // Set final alpha to 1 and revert materials to Opaque mode
+            foreach (var (material, initialColor) in materialsData)
+            {
+                Color finalColor = new Color(initialColor.r, initialColor.g, initialColor.b, 1f);
+                material.color = finalColor;
+
+                if (material.HasProperty("_Mode"))
+                {
+                    material.SetInt("_Mode", 0); // Opaque mode
+                    material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                    material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
+                    material.SetFloat("_ZWrite", 1);
+                    material.DisableKeyword("_ALPHATEST_ON");
+                    material.DisableKeyword("_ALPHABLEND_ON");
+                    material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                    material.renderQueue = -1;
+                }
+            }
+
+            onComplete?.Invoke();
+        }
+
     }
 }

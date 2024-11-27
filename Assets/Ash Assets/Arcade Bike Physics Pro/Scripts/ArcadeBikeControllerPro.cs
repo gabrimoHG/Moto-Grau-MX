@@ -626,12 +626,21 @@ namespace ArcadeBP_Pro
         #region Fuel and condition
         public void Refuel(int refuelAmount) 
         { 
-            fuelAmount += refuelAmount;
+            if((fuelAmount+=refuelAmount)>100)
+                fuelAmount= 100;
+            else
+                fuelAmount += refuelAmount;
             //bikeEvents.RaiseOnFuelUpdate(fuelAmount);
         }
         public void Repair(int repairAmount)
         {
-            condition += repairAmount;
+            if ((condition += repairAmount) > 100)
+            {
+                condition = 100;
+                GetComponent<BikeComponent>().TriggerDetachablesPartsFix();
+            }
+            else
+                condition += repairAmount;
         }
         void ConsumeFuel()
         {

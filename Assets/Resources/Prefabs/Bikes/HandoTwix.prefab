@@ -510,7 +510,7 @@ GameObject:
   - component: {fileID: 2461394227491454425}
   - component: {fileID: 2337059297831198016}
   m_Layer: 0
-  m_Name: rearWheelMesh (1)
+  m_Name: rearWheelMesh1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3768,7 +3768,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -2322909715820737869, guid: c4ba66af1d57ed34c8e8b138f9d8e7e4, type: 3}
+  - {fileID: 2100000, guid: 7a90776a0b178124fb0a476cf1d00d63, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4446,6 +4446,7 @@ MonoBehaviour:
   FOV_smoother: 5
   firstCamReverseZOffset: 4
   firstCamStandardZOffset: -1.5
+  firstCamOnWheelieZOffset: -2
   secondCamReverseZOffset: -1
   secondCamStandardZOffset: 0
   thirdCamReverseZOffset: -0.25
@@ -5236,7 +5237,7 @@ MeshRenderer:
   m_Materials:
   - {fileID: 2100000, guid: 7a90776a0b178124fb0a476cf1d00d63, type: 2}
   - {fileID: 2100000, guid: 2f9c63492e58d644380732ff5560fbc0, type: 2}
-  - {fileID: 2100000, guid: ca741df42ef9dc54393a6443747e1ecb, type: 2}
+  - {fileID: 2100000, guid: 8cd0e795d3f13764cad3ac9786fef1f7, type: 2}
   - {fileID: 2100000, guid: 3792e0e8c1db28649b2687e6728d9e02, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
@@ -6584,7 +6585,7 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 2f9c63492e58d644380732ff5560fbc0, type: 2}
-  - {fileID: 2100000, guid: ca741df42ef9dc54393a6443747e1ecb, type: 2}
+  - {fileID: 2100000, guid: 8cd0e795d3f13764cad3ac9786fef1f7, type: 2}
   - {fileID: 2100000, guid: 7a90776a0b178124fb0a476cf1d00d63, type: 2}
   - {fileID: 2100000, guid: 3792e0e8c1db28649b2687e6728d9e02, type: 2}
   m_StaticBatchInfo:
@@ -7083,7 +7084,7 @@ GameObject:
   - component: {fileID: 7611286860078817820}
   - component: {fileID: 4925585271242484385}
   m_Layer: 0
-  m_Name: frontWheelMesh (1)
+  m_Name: frontWheelMesh1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7842,6 +7843,7 @@ MonoBehaviour:
   projectedForwardOffsetAngle: 0
   frontWheelIsGrounded: 0
   rearWheelIsGrounded: 0
+  isRestricted: 0
   isNew: 0
 --- !u!114 &7003840076719825102
 MonoBehaviour:

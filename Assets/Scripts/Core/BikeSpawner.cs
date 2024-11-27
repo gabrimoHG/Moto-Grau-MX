@@ -17,6 +17,11 @@ public class BikeSpawner : MonoBehaviour
     BikesController bikesController;
     List<BikeData> spawnableBikes;
     List<Transform> spawnedBikes;
+    [SerializeField]List<Vector3> initialSpawnPoints;
+    public Vector3 SortInitialSpawnPoint()
+    {
+        return GeneralUtilities.GetRandomItem(initialSpawnPoints);
+    }
     GameObject lastBike;
     Transform lastSpot;
     public GameObject lastUsedDummyBike { get; private set; }
@@ -89,7 +94,7 @@ public class BikeSpawner : MonoBehaviour
         lastBike = instance;
 
         //lastSpot = closestBike.transform.parent;
-        bikeData = closestBike.GetComponent<DummyBike>().GetBikeData();
+        bikeData = closestBike.GetComponent<DummyBike>().BikeData;
         isNew = closestBike.GetComponent<DummyBike>().isNew;
         //Debug.Log(closestBike + " isNew: " + isNew);
         position = closestBike.transform.position;
