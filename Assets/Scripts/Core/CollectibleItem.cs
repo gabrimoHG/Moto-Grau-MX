@@ -6,11 +6,13 @@ using UnityEngine;
 using System;
 public class CollectibleItem : MonoBehaviour
 {
+    protected GameManager gameManager;
     public event Action<CollectibleItem> onCollected = delegate { };
     [SerializeField] protected int powerUpAmount;
     protected AudioSource audioSource;
     protected virtual void Awake()
     {
+        gameManager = FindObjectOfType<GameManager>();
         audioSource = GetComponent<AudioSource>();
     }
     protected virtual void OnEnable()

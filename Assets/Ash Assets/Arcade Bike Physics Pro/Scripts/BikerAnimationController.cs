@@ -1,13 +1,14 @@
 using UnityEngine;
+using UnityEngine.Rendering.UI;
 
 
 namespace ArcadeBP_Pro
 {
     public class BikerAnimationController : MonoBehaviour
     {
-        [Tooltip("Reference to the bike controller script.")]
-        public ArcadeBikeControllerPro bikeController;
-
+        public ArcadeBikeControllerPro bikePhysicsController;
+        [SerializeField] RiderData riderData;
+        //public RiderData RiderData { get { return riderData; } }
         [Tooltip("Maximum positional offset for the hip during leaning. Example: Setting this to 0.2 means the hip can offset by 0.2 units sideways.")]
         public float maxHipPosOffset = 0.2f;
 
@@ -143,10 +144,10 @@ namespace ArcadeBP_Pro
         [Tooltip("Right hand will move and rotate to this transform during reverse animation.")]
         public Transform rightHandReverseTarget; // New reverse target
 
-
         [Header("Bike Data")]
         [HideInInspector] public float currentSpeed; // Public variable for current speed
         [HideInInspector] public float currentLeanAngle; // Public variable for current lean angle
+        float leanLerp = 0.0f;
 
         Vector3 leanPosOffsetForHip;
         Vector3 leanRotOffsetForHip;
@@ -159,19 +160,17 @@ namespace ArcadeBP_Pro
         Vector3 leftlegReverseTargetInitialPos;
         Vector3 rightlegReverseTargetInitialPos;
 
+        private void Awake()
+        {
+            bikePhysicsController = transform.root.GetComponent<ArcadeBikeControllerPro>();
+
+            InitializeRigTargets();
+        }
         void Start()
         {
             leftLegHint_InitalPos = leftLegHint_rig.localPosition;
             rightLegHint_InitalPos = rightLegHint_rig.localPosition;
 
-            InitializeRigTargets();
-
-            leftlegReverseTargetInitialPos = leftlegReverseTarget.localPosition;
-            rightlegReverseTargetInitialPos = rightlegReverseTarget.localPosition;
-        }
-
-        void InitializeRigTargets()
-        {
             hipTarget_rig.localPosition = hipIdleTarget.localPosition;
             hipTarget_rig.localRotation = hipIdleTarget.localRotation;
 
@@ -180,12 +179,54 @@ namespace ArcadeBP_Pro
 
             rightLegTarget_rig.localPosition = rightlegIdleTarget.localPosition;
             leftLegTarget_rig.localPosition = leftlegIdleTarget.localPosition;
+
+            leftlegReverseTargetInitialPos = leftlegReverseTarget.localPosition;
+            rightlegReverseTargetInitialPos = rightlegReverseTarget.localPosition;
         }
+        private void OnEnable()
+        {
+            GetComponent<Animator>().SetBool("isIKControlled", true);
+
+        }
+        private void OnDisable()
+        {
+        }
+
+        void InitializeRigTargets()
+        {
+            var bikerAnimationTargets = bikePhysicsController.bikeReferences.bikerAnimationTargets;
+
+            hipIdleTarget = bikerAnimationTargets.hipIdleTarget;
+            hipNormalSpeedTarget = bikerAnimationTargets.hipNormalSpeedTarget;
+            hipHighSpeedTarget = bikerAnimationTargets.hipHighSpeedTarget;
+            hipInAirTarget = bikerAnimationTargets.hipInAirTarget;
+            hipReverseTarget = bikerAnimationTargets.hipReverseTarget;
+
+            spineIdleTarget = bikerAnimationTargets.spineIdleTarget;
+            spineNormalSpeedTarget = bikerAnimationTargets.spineNormalSpeedTarget;
+            spineHighSpeedTarget = bikerAnimationTargets.spineHighSpeedTarget;
+            spineReverseTarget = bikerAnimationTargets.spineReverseTarget;
+
+            leftlegIdleTarget = bikerAnimationTargets.leftlegIdleTarget;
+            leftlegInMotionTarget = bikerAnimationTargets.leftlegInMotionTarget;
+            leftlegReverseTarget = bikerAnimationTargets.leftlegReverseTarget;
+
+            rightlegIdleTarget = bikerAnimationTargets.rightlegIdleTarget;
+            rightlegInMotionTarget = bikerAnimationTargets.rightlegInMotionTarget;
+            rightlegReverseTarget = bikerAnimationTargets.rightlegReverseTarget;
+
+            leftHandTarget = bikerAnimationTargets.leftHandTarget;
+            rightHandTarget = bikerAnimationTargets.rightHandTarget;
+            rightHandReverseTarget = bikerAnimationTargets.rightHandReverseTarget;
+            leftHandReverseTarget = bikerAnimationTargets.leftHandReverseTarget;
+        }
+
 
         void Update()
         {
-            currentSpeed = bikeController.localBikeVelocity.magnitude * Mathf.Sign(bikeController.localBikeVelocity.z);
-            currentLeanAngle = bikeController.currentLeanAngle;
+            currentSpeed = bikePhysicsController.localBikeVelocity.magnitude * 
+                Mathf.Sign(bikePhysicsController.localBikeVelocity.z);
+            currentLeanAngle = bikePhysicsController.currentLeanAngle;
 
             HandleLeaning();
             HandleHipTargets();
@@ -196,12 +237,9 @@ namespace ArcadeBP_Pro
             HandleKneesOffset();
             ReverseLegAnimation();
         }
-
-        float leanLerp = 0.0f;
-
         void HandleLeaning()
         {
-            if (Mathf.Abs(bikeController.currentSteerInput) > 0)
+            if (Mathf.Abs(bikePhysicsController.currentSteerInput) > 0)
             {
                 leanLerp = Mathf.Lerp(leanLerp, 1, Time.deltaTime * leanSpeed);
             }
@@ -211,22 +249,22 @@ namespace ArcadeBP_Pro
             }
 
             float leanAngle = currentLeanAngle;
-            float posX = (-leanAngle / bikeController.bikeSettings.maxLeanAngle) * maxHipPosOffset;
+            float posX = (-leanAngle / bikePhysicsController.bikeSettings.maxLeanAngle) * maxHipPosOffset;
 
             leanPosOffsetForHip = new Vector3(posX, -Mathf.Abs(posX / 2), 0);
 
-            float RotZ_Hip = (leanAngle / bikeController.bikeSettings.maxLeanAngle) * maxHipRotOffset * leanLerp;
+            float RotZ_Hip = (leanAngle / bikePhysicsController.bikeSettings.maxLeanAngle) * maxHipRotOffset * leanLerp;
 
             leanRotOffsetForHip = new Vector3(0, 0, RotZ_Hip);
 
-            float RotZ_spine = (leanAngle / bikeController.bikeSettings.maxLeanAngle) * maxSpineRotOffset;
+            float RotZ_spine = (leanAngle / bikePhysicsController.bikeSettings.maxLeanAngle) * maxSpineRotOffset;
 
             leanRotOffsetForSpine = new Vector3(0, 0, RotZ_spine);
         }
 
         void HandleHipTargets()
         {
-            if (!bikeController.bikeIsGrounded)
+            if (!bikePhysicsController.bikeIsGrounded)
             {
                 TransitionToTarget(hipTarget_rig, hipInAirTarget, leanPosOffsetForHip, leanRotOffsetForHip);
                 return;
@@ -234,22 +272,26 @@ namespace ArcadeBP_Pro
 
             if (currentSpeed < normalSpeedThreshold)
             {
-                if (currentSpeed < -0.5f && !bikeController.isDoingBurnout && useReverseLegAnimation)
+                if (currentSpeed < -0.5f && !bikePhysicsController.isDoingBurnout && useReverseLegAnimation)
                 {
-                    TransitionToTarget(hipTarget_rig, hipReverseTarget, leanPosOffsetForHip, leanRotOffsetForHip);
+                    TransitionToTarget(hipTarget_rig, hipReverseTarget,
+                        leanPosOffsetForHip, leanRotOffsetForHip);
                 }
                 else
                 {
-                    TransitionToTarget(hipTarget_rig, hipIdleTarget, leanPosOffsetForHip, leanRotOffsetForHip);
+                    TransitionToTarget(hipTarget_rig, hipIdleTarget,
+                        leanPosOffsetForHip, leanRotOffsetForHip);
                 }
             }
             else if (currentSpeed < highSpeedThreshold)
             {
-                TransitionToTarget(hipTarget_rig, hipNormalSpeedTarget, leanPosOffsetForHip, leanRotOffsetForHip);
+                TransitionToTarget(hipTarget_rig, hipNormalSpeedTarget,
+                    leanPosOffsetForHip, leanRotOffsetForHip);
             }
             else
             {
-                TransitionToTarget(hipTarget_rig, hipHighSpeedTarget, leanPosOffsetForHip, leanRotOffsetForHip);
+                TransitionToTarget(hipTarget_rig, hipHighSpeedTarget,
+                    leanPosOffsetForHip, leanRotOffsetForHip);
             }
         }
 
@@ -257,48 +299,63 @@ namespace ArcadeBP_Pro
         {
             if (currentSpeed < normalSpeedThreshold)
             {
-                if (currentSpeed < -0.5f && !bikeController.isDoingBurnout && useReverseLegAnimation)
+                if (currentSpeed < -0.5f && !bikePhysicsController.isDoingBurnout &&
+                    useReverseLegAnimation)
                 {
-                    TransitionToTarget(spineRootTarget_rig, spineReverseTarget, Vector3.zero, leanRotOffsetForSpine);
-                    TransitionToTarget(spineTipTarget_rig, spineReverseTarget, Vector3.zero, new Vector3(spineTipOffset, 0, 0) + leanRotOffsetForSpine);
+                    TransitionToTarget(spineRootTarget_rig, spineReverseTarget,
+                        Vector3.zero, leanRotOffsetForSpine);
+                    TransitionToTarget(spineTipTarget_rig, spineReverseTarget,
+                        Vector3.zero, new Vector3(spineTipOffset, 0, 0) + leanRotOffsetForSpine);
                 }
                 else
                 {
-                    TransitionToTarget(spineRootTarget_rig, spineIdleTarget, Vector3.zero, leanRotOffsetForSpine);
-                    TransitionToTarget(spineTipTarget_rig, spineIdleTarget, Vector3.zero, new Vector3(spineTipOffset, 0, 0) + leanRotOffsetForSpine);
+                    TransitionToTarget(spineRootTarget_rig, spineIdleTarget,
+                        Vector3.zero, leanRotOffsetForSpine);
+                    TransitionToTarget(spineTipTarget_rig, spineIdleTarget,
+                        Vector3.zero, new Vector3(spineTipOffset, 0, 0) + leanRotOffsetForSpine);
                 }
             }
             else if (currentSpeed < highSpeedThreshold)
             {
-                TransitionToTarget(spineRootTarget_rig, spineNormalSpeedTarget, Vector3.zero, leanRotOffsetForSpine);
-                TransitionToTarget(spineTipTarget_rig, spineNormalSpeedTarget, Vector3.zero, new Vector3(spineTipOffset, 0, 0) + leanRotOffsetForSpine);
+                TransitionToTarget(spineRootTarget_rig, spineNormalSpeedTarget,
+                    Vector3.zero, leanRotOffsetForSpine);
+                TransitionToTarget(spineTipTarget_rig, spineNormalSpeedTarget,
+                    Vector3.zero, new Vector3(spineTipOffset, 0, 0) + leanRotOffsetForSpine);
             }
             else
             {
-                TransitionToTarget(spineRootTarget_rig, spineHighSpeedTarget, Vector3.zero, leanRotOffsetForSpine);
-                TransitionToTarget(spineTipTarget_rig, spineHighSpeedTarget, Vector3.zero, new Vector3(spineTipOffset, 0, 0) + leanRotOffsetForSpine);
+                TransitionToTarget(spineRootTarget_rig, spineHighSpeedTarget,
+                    Vector3.zero, leanRotOffsetForSpine);
+                TransitionToTarget(spineTipTarget_rig, spineHighSpeedTarget,
+                    Vector3.zero, new Vector3(spineTipOffset, 0, 0) + leanRotOffsetForSpine);
             }
         }
 
         void HandleLegTargets()
         {
-            if (currentSpeed < normalSpeedThreshold && bikeController.bikeIsGrounded)
+            if (currentSpeed < normalSpeedThreshold && bikePhysicsController.bikeIsGrounded)
             {
-                if (currentSpeed < -0.5f && !bikeController.isDoingBurnout && useReverseLegAnimation)
+                if (currentSpeed < -0.5f && !bikePhysicsController.isDoingBurnout && useReverseLegAnimation)
                 {
-                    TransitionToTarget(rightLegTarget_rig, rightlegReverseTarget, Vector3.zero, Vector3.zero);
-                    TransitionToTarget(leftLegTarget_rig, leftlegReverseTarget, Vector3.zero, Vector3.zero);
+                    TransitionToTarget(rightLegTarget_rig, rightlegReverseTarget,
+                        Vector3.zero, Vector3.zero);
+                    TransitionToTarget(leftLegTarget_rig, leftlegReverseTarget,
+                        Vector3.zero, Vector3.zero);
                 }
                 else
                 {
-                    TransitionToTarget(rightLegTarget_rig, rightlegIdleTarget, Vector3.zero, Vector3.zero);
-                    TransitionToTarget(leftLegTarget_rig, leftlegIdleTarget, Vector3.zero, Vector3.zero);
+                    TransitionToTarget(rightLegTarget_rig, rightlegIdleTarget,
+                        Vector3.zero, Vector3.zero);
+                    TransitionToTarget(leftLegTarget_rig, leftlegIdleTarget,
+                        Vector3.zero, Vector3.zero);
                 }
             }
             else
             {
-                TransitionToTarget(rightLegTarget_rig, rightlegInMotionTarget, Vector3.zero, Vector3.zero);
-                TransitionToTarget(leftLegTarget_rig, leftlegInMotionTarget, Vector3.zero, Vector3.zero);
+                TransitionToTarget(rightLegTarget_rig, rightlegInMotionTarget,
+                    Vector3.zero, Vector3.zero);
+                TransitionToTarget(leftLegTarget_rig, leftlegInMotionTarget,
+                    Vector3.zero, Vector3.zero);
             }
         }
 
@@ -306,14 +363,20 @@ namespace ArcadeBP_Pro
         {
             float time = Time.time * reverseStepSpeed;
 
-            float leftLegY = leftlegReverseTargetInitialPos.y + Mathf.Clamp01(Mathf.Sin(time)) * reverseStepHeight;
-            float rightLegY = rightlegReverseTargetInitialPos.y + Mathf.Clamp01(Mathf.Sin(time + Mathf.PI)) * reverseStepHeight; // Opposite phase
+            float leftLegY = leftlegReverseTargetInitialPos.y + 
+                Mathf.Clamp01(Mathf.Sin(time)) * reverseStepHeight;
+            float rightLegY = rightlegReverseTargetInitialPos.y +
+                Mathf.Clamp01(Mathf.Sin(time + Mathf.PI)) * reverseStepHeight; // Opposite phase
 
-            float leftLegZ = leftlegReverseTargetInitialPos.z + Mathf.Cos(time) * reverseStepDistance;
-            float rightLegZ = rightlegReverseTargetInitialPos.z + Mathf.Cos(time + Mathf.PI) * reverseStepDistance; // Opposite phase
+            float leftLegZ = leftlegReverseTargetInitialPos.z +
+                Mathf.Cos(time) * reverseStepDistance;
+            float rightLegZ = rightlegReverseTargetInitialPos.z + 
+                Mathf.Cos(time + Mathf.PI) * reverseStepDistance; // Opposite phase
 
-            leftlegReverseTarget.localPosition = new Vector3(leftlegReverseTargetInitialPos.x, leftLegY, leftLegZ);
-            rightlegReverseTarget.localPosition = new Vector3(rightlegReverseTargetInitialPos.x, rightLegY, rightLegZ);
+            leftlegReverseTarget.localPosition = new Vector3(
+                leftlegReverseTargetInitialPos.x, leftLegY, leftLegZ);
+            rightlegReverseTarget.localPosition = new Vector3(
+                rightlegReverseTargetInitialPos.x, rightLegY, rightLegZ);
         }
 
 
@@ -324,37 +387,48 @@ namespace ArcadeBP_Pro
 
         void HandleKneesOffset()
         {
-            float leanFactor = Mathf.Abs(currentLeanAngle / bikeController.bikeSettings.maxLeanAngle);
+            float leanFactor = Mathf.Abs(currentLeanAngle /
+                bikePhysicsController.bikeSettings.maxLeanAngle);
             float posX = leanFactor * maxKneeOffset;
 
-            Vector3 LeftLegHintoffset = leftLegHint_InitalPos + new Vector3(-posX, 0, 0);
-            Vector3 RightLegHintoffset = rightLegHint_InitalPos + new Vector3(posX, 0, 0);
+            Vector3 LeftLegHintoffset = leftLegHint_InitalPos +
+                new Vector3(-posX, 0, 0);
+            Vector3 RightLegHintoffset = rightLegHint_InitalPos +
+                new Vector3(posX, 0, 0);
 
-            Vector3 leftLegHintPos = Vector3.Lerp(leftLegHint_InitalPos, LeftLegHintoffset, leanFactor);
-            Vector3 rightLegHintPos = Vector3.Lerp(rightLegHint_InitalPos, RightLegHintoffset, leanFactor);
+            Vector3 leftLegHintPos = Vector3.Lerp(leftLegHint_InitalPos,
+                LeftLegHintoffset, leanFactor);
+            Vector3 rightLegHintPos = Vector3.Lerp(rightLegHint_InitalPos,
+                RightLegHintoffset, leanFactor);
 
-            leftLegHint_rig.localPosition = Vector3.Lerp(leftLegHint_rig.localPosition, leftLegHintPos, Time.deltaTime * leanSpeed);
-            rightLegHint_rig.localPosition = Vector3.Lerp(rightLegHint_rig.localPosition, rightLegHintPos, Time.deltaTime * leanSpeed);
+            leftLegHint_rig.localPosition = Vector3.Lerp(leftLegHint_rig.localPosition,
+                leftLegHintPos, Time.deltaTime * leanSpeed);
+            rightLegHint_rig.localPosition = Vector3.Lerp(rightLegHint_rig.localPosition,
+                rightLegHintPos, Time.deltaTime * leanSpeed);
         }
 
-        void TransitionToTarget(Transform target, Transform desiredTransform, Vector3 PositionOffset, Vector3 RotationOffset)
+        void TransitionToTarget(Transform target, Transform desiredTransform,
+            Vector3 PositionOffset, Vector3 RotationOffset)
         {
             // Calculate the target position with the offset in local space
             Vector3 targetPosition = desiredTransform.TransformPoint(PositionOffset);
 
             // Smoothly interpolate the target position to the desired position with the offset
-            target.position = Vector3.Lerp(target.position, targetPosition, Time.deltaTime * transitionSpeed);
+            target.position = Vector3.Lerp(target.position, targetPosition,
+                Time.deltaTime * transitionSpeed);
 
             // Calculate the target rotation with the rotation offset in local space
-            Quaternion desiredRotationWithOffset = desiredTransform.rotation * Quaternion.Euler(RotationOffset);
+            Quaternion desiredRotationWithOffset = desiredTransform.rotation *
+                Quaternion.Euler(RotationOffset);
 
             // Smoothly interpolate the target rotation to the desired rotation with the offset
-            target.rotation = Quaternion.Slerp(target.rotation, desiredRotationWithOffset, Time.deltaTime * transitionSpeed);
+            target.rotation = Quaternion.Slerp(target.rotation,
+                desiredRotationWithOffset, Time.deltaTime * transitionSpeed);
         }
 
         void KeepHandsOnHandlebars()
         {
-            if (currentSpeed < -0.5f && !bikeController.isDoingBurnout)
+            if (currentSpeed < -0.5f && !bikePhysicsController.isDoingBurnout)
             {
                 rightHandTarget_rig.position = rightHandReverseTarget.position;
                 leftHandTarget_rig.position = leftHandReverseTarget.position;

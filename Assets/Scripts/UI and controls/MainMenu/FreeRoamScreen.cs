@@ -14,9 +14,9 @@ public class FreeRoamScreen : MainMenuScreen
         base.Awake();
     }
 
-    public override void FadeScreenIn()
+    public override void FadeScreenIn(bool directTransition=false)
     {
-        base.FadeScreenIn();
+        base.FadeScreenIn(directTransition);
         MainMenuManager.instance.returnButton.FadeInAndActivate();
 
         bikeSelectionScreen.FadeInCurrentBike();
@@ -24,8 +24,8 @@ public class FreeRoamScreen : MainMenuScreen
         riderSelectionScreen.FadeInCurrentRider();
     }
 
-    public override void FadeScreenOut()
+    public override void FadeScreenOut(bool directTransition = false)
     {
-        base.FadeScreenOut();
+        base.FadeScreenOut(directTransition);
     }
 }

@@ -7,17 +7,15 @@ using HistoricGamesUtils;
 using UnityEngine.Rendering;
 public class BikeAdditionalPhysics : MonoBehaviour
 {
-    [Tooltip("Reference to the ArcadeBikeControllerPro script.")]
-    public ArcadeBikeControllerPro bikeController;
-
+    ArcadeBikeControllerPro bikeController;
     [Tooltip("Reference to the CameraController script.")]
     public CameraController cameraController;
 
     [Tooltip("Prefab for the Dummy bike.")]
     public GameObject dummyBikePrefab;
 
-    [Tooltip("Prefab for the character ragdoll.")]
-    public GameObject characterRagdollPrefab;
+    //[Tooltip("Prefab for the character ragdoll.")]
+    //public GameObject characterRagdollPrefab;
 
     [Tooltip("Animator component of the animated character.")]
     public Animator characterAnimator;
@@ -50,18 +48,19 @@ public class BikeAdditionalPhysics : MonoBehaviour
     private void Awake()
     {
         bikeRigidbody = GetComponent<Rigidbody>();
-#if UNITY_EDITOR_64
         if (cooldownDuration == 0)
             Debug.LogWarning("Collision cooldown is 0!");
-#endif
+        bikeController = GetComponent<ArcadeBikeControllerPro>();
     }
     void Start()
     {
-        GameManager.instance.onPlayerBikeChange += UpdateBikeController;
+        FindObjectOfType<GameManager>().onPlayerBikeChange += UpdateBikeController;//Revisado!
         bikeCollider = bikeController.bikeReferences.collider;
     }
     void UpdateBikeController(ArcadeBikeControllerPro bikeController) =>
         this.bikeController = bikeController;
+
+
     void OnCollisionEnter(Collision collision)
     {
         //Debug.Log("Collided with " + collision.gameObject);
@@ -106,14 +105,14 @@ public class BikeAdditionalPhysics : MonoBehaviour
             crashOutputDegree = 0;
 
 
-            if (bikeController.wheelieAngle <= 15)
+            if (bikeController.currentWheelieAngle <= 15)
             {
-                crashOutputDegree = Mathf.Lerp(0, bikeController.wheelieAngle - 15, crashImpact);
+                crashOutputDegree = Mathf.Lerp(0, bikeController.currentWheelieAngle - 15, crashImpact);
             }
             else
             {
                 crashOutputDegree = Mathf.Lerp(0,
-                    (bikeController.wheelieAngle + 30) * -1, crashImpact);
+                    (bikeController.currentWheelieAngle + 30) * -1, crashImpact);
             }
             StartCoroutine(InterpolationUtilities.RotateInXLinearly(wheelieTransform,
                 crashOutputDegree, .25f, OutcomeAfterCrashOnWheelie, true));
@@ -148,7 +147,7 @@ public class BikeAdditionalPhysics : MonoBehaviour
         isRagdollActivated = true;
 
         Transform bikeTransform = bikeController.bikeReferences.leanTransform;
-
+        var riderData = characterAnimator.GetComponent<RiderComponent>().RiderData;
         // Instantiate the ragdolls
         var bodyColor = bikeController.GetComponent<BikeComponent>().GetBodyColor();
         var rimColor = bikeController.GetComponent < BikeComponent>().GetRimsColor();
@@ -158,7 +157,8 @@ public class BikeAdditionalPhysics : MonoBehaviour
         dummyBikeInstance.GetComponent<BikeComponent>().SetRimsColor(rimColor);
         dummyBikeInstance.GetComponent<BikeComponent>().SetIsTailActive(isTailActive);
         dummyBikeInstance.GetComponent<DummyBike>().enabled = true;
-        characterRagdollInstance = Instantiate(characterRagdollPrefab, bikeTransform.position, bikeTransform.rotation);
+
+        characterRagdollInstance = Instantiate(riderData.ragdollPrefab, bikeTransform.position, bikeTransform.rotation);
 
         // Match the ragdoll bones' rotations to the character's bones
         /*Animator ragdollAnimator = characterRagdollInstance.GetComponent<Animator>();
@@ -208,6 +208,8 @@ public class BikeAdditionalPhysics : MonoBehaviour
         if (isDoingWheelie)
         {
             var wheelieMaxSpeed = bikeController.bikeSettings.wheelieMaxSpeed;
+
+
             float clampedSpeed = Mathf.Clamp(bikeController.speedKmph,
                 0, (wheelieMaxSpeed * 3.6f));
             damage = Mathf.Lerp(0, 100, clampedSpeed / (wheelieMaxSpeed * 3.6f));
@@ -215,7 +217,7 @@ public class BikeAdditionalPhysics : MonoBehaviour
         else if(isDoingStoppie)
         {
             damage = Mathf.Lerp(0, 100, bikeController.speedKmph /
-                bikeController.stoppieAngle);
+                bikeController.currentStoppieAngle);
         }
 
 
@@ -232,6 +234,8 @@ public class BikeAdditionalPhysics : MonoBehaviour
         if (wheelieTransform.localRotation.eulerAngles.x <
             (360 - bikeController.bikeSettings.wheelieAngleLimit))
             DislodgePlayer(true, false);
+
+
         //Debug.Log("Wheelie rotation "+wheelieTransform.localRotation.eulerAngles.x);
         //Debug.Log("Wheelie limit " + bikeController.bikeSettings.wheelieAngleLimit);
     }

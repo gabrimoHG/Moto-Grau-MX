@@ -1,18 +1,30 @@
 using HistoricGamesUtils;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Video;
 
 public class BikeSelectionScreen : MainMenuScreen
-{
+{//implementar classe de base com List<T> como requisito se mais seletores forem criados!!!
     public GameObject currentBike {  get; private set; }
-    public int currentBikeIndex { get; private set; }
+    public static int currentBikeID { get; private set; }
     public void SetInitialBike() 
-    { 
-        currentBike = bikes[0];
-        currentBikeIndex = currentBike.GetComponent<DummyBike>().BikeData.id;
+    {
+        //currentBike = bikes[0];
+        //currentBikeID = currentBike.GetComponent<DummyBike>().BikeData.id;
+        foreach (var bike in bikes)
+        {
+            if (currentBikeID == bike.GetComponent<DummyBike>().BikeData.id)
+            {
+                currentBike = bike;
+                currentBike.SetActive(true);
+            }
+            else
+                bike.SetActive(false);
+        }
     }
     [SerializeField]List<GameObject> bikes;
     Transform bikeNameTransform;
@@ -21,15 +33,34 @@ public class BikeSelectionScreen : MainMenuScreen
     protected override void Awake()
     {
         base.Awake();
+        /*foreach(var bike in bikes)
+            DontDestroyOnLoad(bike);*/
         //currentBike = bikes[0];
         bikeNameTransform = transform.GetChild(2).GetChild(1);
         UpdateBikeData();
     }
-    public override void FadeScreenIn()
+    public void RetargetComponentsList()
+    {
+        var bikeComponents = UnityExtensionsUtilities.
+            FindObjectsOfTypeIncludingInactive<BikeComponent>();
+        bikes = new List<GameObject>();
+        //Debug.Log("ID received in Main Menu "+currentBikeID);
+        foreach (var bikeComponent in bikeComponents)
+        {
+            bikes.Add(bikeComponent.gameObject);
+            var dummyBike = bikeComponent.GetComponent<DummyBike>();
+            if (currentBikeID == dummyBike.BikeData.id)
+                currentBike = bikeComponent.gameObject;
+        }
+        //SetInitialBike();
+
+    }
+
+    public override void FadeScreenIn(bool directTransition = false)
     {
         base.FadeScreenIn();
         MainMenuManager.instance.FadeCompanyLogoIn();
-        MainMenuManager.instance.returnButton.FadeOutAndDeactivate();
+        //MainMenuManager.instance.returnButton.FadeOutAndDeactivate();
         mapSelectionScreen.FadeOutCurrentMapQuadAlpha();
         riderSelectionScreen.FadeOutCurrentRider();
         //fade out character model
@@ -43,7 +74,6 @@ public class BikeSelectionScreen : MainMenuScreen
         int nextIndex = (currentIndex + 1) % bikes.Count;
 
         currentBike = bikes[nextIndex];
-        currentBikeIndex = currentBike.GetComponent<DummyBike>().BikeData.id;
         currentBike.SetActive(true);
         UpdateBikeData();
     }
@@ -56,7 +86,6 @@ public class BikeSelectionScreen : MainMenuScreen
         int previousIndex = (currentIndex - 1 + bikes.Count) % bikes.Count;
 
         currentBike = bikes[previousIndex];
-        currentBikeIndex = currentBike.GetComponent<DummyBike>().BikeData.id;
         currentBike.SetActive(true);
         UpdateBikeData();
     }
@@ -65,6 +94,7 @@ public class BikeSelectionScreen : MainMenuScreen
     {
         var bikeName = currentBike.GetComponent<DummyBike>().BikeData.title;
         bikeNameTransform.GetComponent<TextMeshProUGUI>().text = bikeName;
+        currentBikeID = currentBike.GetComponent<DummyBike>().BikeData.id;
     }
 
     public void FadeInCurrentBike()

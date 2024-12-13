@@ -1,20 +1,37 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace HistoricGamesUtils {
     public static class UnityExtensionsUtilities
     {
         public static T FindObjectOfTypeIncludingInactive<T>() where T : Component
         {
+            var activeScene = SceneManager.GetActiveScene();
             foreach (T obj in Resources.FindObjectsOfTypeAll<T>())
             {
-                if (obj.gameObject.hideFlags == HideFlags.None)
+                if (obj.gameObject.scene == activeScene && 
+                    obj.gameObject.hideFlags == HideFlags.None)
                 {
                     return obj;
                 }
             }
             return null;
+        }
+        public static List<T> FindObjectsOfTypeIncludingInactive<T>() where T : Component
+        {
+            var list = new List<T>();
+            var activeScene = SceneManager.GetActiveScene();
+            foreach (T obj in Resources.FindObjectsOfTypeAll<T>())
+            {
+                if (obj.gameObject.scene == activeScene && 
+                    obj.gameObject.hideFlags == HideFlags.None)
+                {
+                    list.Add(obj);
+                }
+            }
+            return list;
         }
 
         public static T GetComponentInChildrenIncludingInactive<T>(

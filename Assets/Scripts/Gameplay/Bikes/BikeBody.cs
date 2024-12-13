@@ -9,7 +9,10 @@ public class BikeBody : MonoBehaviour
     [SerializeField] bool isDummy;
     public Color GetBodyColor()
     {
-        return  GetComponent<MeshRenderer>().materials[specificMaterialIndex].color;
+        if (!gameObject.scene.IsValid())
+            return GetComponent<MeshRenderer>().sharedMaterials[specificMaterialIndex].color;
+        else
+            return GetComponent<MeshRenderer>().materials[specificMaterialIndex].color;
     }
     public void SetPartColor(Color color) => 
         GetComponent<MeshRenderer>().materials[specificMaterialIndex].color = color;

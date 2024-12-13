@@ -6,7 +6,6 @@ using System.IO;
 using Unity.VisualScripting;
 public class BikeComponent : MonoBehaviour
 {
-    ArcadeBikeControllerPro bikeController;
     [SerializeField]List<BikeBody> colorableBodyParts;
     List<GameObject> detachableParts;
     public List<GameObject> models { get; private set; }
@@ -35,7 +34,6 @@ public class BikeComponent : MonoBehaviour
     [SerializeField] bool isModelOnly;
     private void Awake()
     {
-        bikeController = GetComponent<ArcadeBikeControllerPro>();
         detachableParts = new List<GameObject>();
         if(tailSection!=null)
             detachableParts.Add(tailSection);

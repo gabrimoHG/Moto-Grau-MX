@@ -1,6 +1,7 @@
 using HistoricGamesUtils;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -28,10 +29,19 @@ public class ReturnButton : MainMenuButton
         StartCoroutine(InterpolationUtilities.
             AlphaToTargetLinearly(image, 1, .25f));
     }
-    public void FadeOutAndDeactivate()
+    public void FadeOutAndDeactivate(bool directTransition=false)
     {
-        StartCoroutine(InterpolationUtilities.
-            AlphaToTargetLinearly(image, 0, .25f, DisableGameobject));
+        //Debug.Log("...");
+        if (directTransition)
+        {
+            image.color = new Color(image.color.r, image.color.g, image.color.b, 0);
+            gameObject.SetActive(false);
+        }
+        else
+        {
+            StartCoroutine(InterpolationUtilities.
+                AlphaToTargetLinearly(image, 0, .25f, DisableGameobject));
+        }
     }
     void DisableGameobject()=>gameObject.SetActive(false);
 }

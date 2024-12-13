@@ -4,10 +4,10 @@ using System.Linq.Expressions;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Jobs;
-using static UnityEngine.UI.Image;
 
 public class TailSection : MonoBehaviour
 {
+    GameManager gameManager;
     public bool isBroken { get; private set; }
     public bool isScraping {  get; private set; }
     public List<Transform> additionalPieces { get; private set; }
@@ -23,6 +23,7 @@ public class TailSection : MonoBehaviour
     
     private void Awake()
     {
+        gameManager = FindObjectOfType<GameManager>();
         boxCollider = GetComponent<BoxCollider>();
         additionalPieces = new List<Transform>();
         if (transform.parent != null)
@@ -39,8 +40,9 @@ public class TailSection : MonoBehaviour
 
     void Start()
     {
-        var bike = GameManager.instance.GetCurrentBikeController();
-        scrapingSound = bike.bikeAudio.scrapingSound;
+
+        var bikePhysicsController = gameManager.GetCurrentBikePhysicsController();//Revisado!
+        scrapingSound = bikePhysicsController.bikeAudio.scrapingSound;
     }
     public void ResetTailData()
     {
@@ -57,7 +59,7 @@ public class TailSection : MonoBehaviour
     }
     private void OnTriggerEnter(Collider other)
     {
-        if (isBroken || !GameManager.instance.GetCurrentBikeController().isDoingWheelie)
+        if (isBroken || !gameManager.GetCurrentBikePhysicsController().isDoingWheelie)//Revisado!
             return;
         if (!scrapingSound.isPlaying)
             scrapingSound.Play();
@@ -132,7 +134,7 @@ public class TailSection : MonoBehaviour
                     force = Vector3.back * randomForce;
                     instance.GetComponent<Rigidbody>().AddForce(force, ForceMode.Impulse);
                     instance.transform.parent = null;
-                    GameManager.instance.SetDestruction(instance);
+                    gameManager.SetDestruction(instance);
                     pieceGameobject.SetActive(false);
                 }
 
@@ -149,14 +151,14 @@ public class TailSection : MonoBehaviour
                 force = Vector3.back * randomForce;
                 instanceBoxCollider.gameObject.GetComponent<Rigidbody>().
                     AddForce(force, ForceMode.Impulse);
-                GameManager.instance.SetDestruction(instance);
+                gameManager.SetDestruction(instance);
                 baseModel.SetActive(false);
 
                 isBroken = true;
                 tailStatus = null;
                 isScraping = false;
                 scrapingSound.Stop();
-                GameManager.instance.GetCurrentBikeController().DecreaseCondition(1);
+                gameManager.GetCurrentBikePhysicsController().DecreaseCondition(1);//Revisado!
             }
             yield return null;
         }

@@ -14,3 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   title: Piloto rosa
   id: 1
+  mannequinPrefab: {fileID: 440566723159257673, guid: afed2f65f5be7d04fafe8a703b8b0091,
+    type: 3}
+  ragdollPrefab: {fileID: 5862566900047247827, guid: 4a7f7f4eebc4556488d3781916497530,
+    type: 3}

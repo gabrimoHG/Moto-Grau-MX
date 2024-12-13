@@ -8,11 +8,17 @@ using UnityEngine.XR;
 
 public class CollectibleController : MonoBehaviour
 {
+    GameManager gameManager;
     [SerializeField] int respawnCooldown;
     CollectibleZone playerClosestZone;
     protected List<CollectibleItem> elements;
     protected List<CollectibleZone> zones;
     protected virtual void Awake()
+    {
+        gameManager = FindObjectOfType<GameManager>();
+        SetInternalData();
+    }
+    void SetInternalData()
     {
         elements = new List<CollectibleItem>();
         zones = new List<CollectibleZone>();
@@ -23,11 +29,17 @@ public class CollectibleController : MonoBehaviour
             foreach (Transform element in zone.transform)
             {
                 elements.Add(element.GetComponent<CollectibleItem>());
-                //Debug.Log(element + " subscribed!");
                 element.GetComponent<CollectibleItem>().onCollected += TriggerDisableTemporarily;
             }
         }
     }
+    protected virtual void Start()
+    {
+        gameManager.onPlayerBikeChange += UpdateSubscriptionsOnBikeChange;//Revisado!
+        StartCoroutine(ZonesAvailability());
+        UpdateSubscriptionsOnBikeChange(gameManager.GetCurrentBikePhysicsController());//Revisado!
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.GetComponent<ArcadeBikeControllerPro>() != null)
@@ -44,14 +56,8 @@ public class CollectibleController : MonoBehaviour
             bikeController.isRestricted = false;
         }
     }
-    protected virtual void Start()
-    {
-        StartCoroutine(ZonesAvailability());
-        GameManager.instance.onPlayerBikeChange += UpdateSubscriptionsOnBikeChange;
-        UpdateSubscriptionsOnBikeChange(GameManager.instance.GetCurrentBikeController());
-    }
 
-    void UpdateSubscriptionsOnBikeChange(ArcadeBikeControllerPro bikeController)
+    void UpdateSubscriptionsOnBikeChange(ArcadeBikeControllerPro controller)
     {
         foreach (var zone in zones)
         {
@@ -61,14 +67,14 @@ public class CollectibleController : MonoBehaviour
     }
     void SetSubscriptionsByItemType(CollectibleItem collectibleItem)
     {
-        var bikeController = GameManager.instance.GetCurrentBikeController();
+        var bikePhysicsController = gameManager.GetCurrentBikePhysicsController();//Revisado!
         switch (collectibleItem)
         {
             case FuelCanister fuelCanister:
-                fuelCanister.onAmountSent += bikeController.Refuel;
+                fuelCanister.onAmountSent += bikePhysicsController.Refuel;
                 break;
             case RepairTools repairTools:
-                repairTools.onAmountSent += bikeController.Repair;
+                repairTools.onAmountSent += bikePhysicsController.Repair;
                 break;
             default:
                 break;
@@ -86,14 +92,16 @@ public class CollectibleController : MonoBehaviour
 
     IEnumerator ZonesAvailability()
     {
-        var bikeController = GameManager.instance.GetCurrentBikeController();
         var closestDistance = float.MaxValue;
         while (true)
         {
-            foreach(var zone in zones)
+            var bikePhysicsController = gameManager.GetCurrentBikePhysicsController();//Revisado!
+            /*if(bikePhysicsController==null)
+                yield return new WaitForSeconds(.5f);*/
+            foreach (var zone in zones)
             {
                 var zoneXPlayerDistance = Vector3.Distance(zone.transform.position,
-                    bikeController.transform.position);
+                    bikePhysicsController.transform.position);
                 if (zoneXPlayerDistance < closestDistance)
                 {
                     playerClosestZone = zone;

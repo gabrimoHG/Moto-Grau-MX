@@ -104,9 +104,6 @@ namespace ArcadeBP_Pro
             [Tooltip("camera Controller of the bike.")]
             public CameraController cameraController;
 
-            [Tooltip("ragdoll activator of the bike")]
-            public BikeAdditionalPhysics additionalPhysics;
-
             public TailSection tailSection;
         }
         public BikeReferences bikeReferences;
@@ -273,8 +270,6 @@ namespace ArcadeBP_Pro
             [Tooltip("Adjusts the lean angle based on speed. X-axis represents speed, Y-axis represents lean angle multiplier. Example: Curve from (0, 0.2) to (1, 1) means minimal lean at low speed, increasing to maximum lean at high speed.")]
             public AnimationCurve leanCurve;
 
-            public AnimationCurve wheelieDropCurve;
-
             public AnimationCurve wheelieEasinessCurve;
         }
         public BikeCurves bikeCurves;
@@ -348,12 +343,13 @@ namespace ArcadeBP_Pro
             
 
         }
-        public BikeEvents bikeEvents;
+        public BikeEvents events;
 
         #endregion
 
 
         #region NonInspector Variables
+        GameManager gameManager;
         //private and public hidden variables
         private float maxFrontRaycastDistance;
         private float maxRearRaycastDistance;
@@ -365,6 +361,7 @@ namespace ArcadeBP_Pro
         Vector3 projectedBikeForward, projectedBikeUp;
         [HideInInspector] public float projectedForwardOffsetAngle;
         RaycastHit frontWheelHit, rearWheelHit;
+        BikeAdditionalPhysics additionalPhysics;
         public bool bikeIsGrounded { get; private set; }
         public bool frontWheelIsGrounded;
         public bool rearWheelIsGrounded;
@@ -394,8 +391,8 @@ namespace ArcadeBP_Pro
         public bool isRestricted;
         public int speedKmph { get; private set; }
         public float speedLimit { get; private set; }
-        public float wheelieAngle { get; private set; }
-        public float stoppieAngle { get; private set; }
+        public float currentWheelieAngle { get; private set; }
+        public float currentStoppieAngle { get; private set; }
         public bool isNew;
         public int condition { get; private set; }
         public int fuelAmount { get; private set; }
@@ -404,13 +401,24 @@ namespace ArcadeBP_Pro
         private ParticleSystem tireSmoke_ps;
         Vector3 lastValidPosition;
         bool isWaitingOnReset;
-        
+       
         #endregion
 
 
         #region Unity Methods
 
         private void Awake()
+        {
+            additionalPhysics = GetComponent<BikeAdditionalPhysics>();
+            gameManager = FindObjectOfType<GameManager>();
+            SkidmarksSet();
+            TireSmokeParticleSet();
+        }
+        private void OnDestroy()
+        {
+            //Debug.Log($"{name} - Physics controller destroyed at frame {Time.frameCount}");
+        }
+        void SkidmarksSet()
         {
             if (bikeReferences.skidmarksPrefab != null)
             {
@@ -425,7 +433,10 @@ namespace ArcadeBP_Pro
             {
                 Debug.LogWarning("No Skidmarks Prefab has been assigned");
             }
+        }
 
+        void TireSmokeParticleSet()
+        {
             if (bikeReferences.tireSmokePrefab != null)
             {
                 var tireSmokeInstance = Instantiate(bikeReferences.tireSmokePrefab, bikeReferences.rearWheel);
@@ -446,14 +457,13 @@ namespace ArcadeBP_Pro
             }
         }
 
-
         private void Start()
         {
             
             
             //previousFuel = 100;
             UIManager.instance.fuelMeter.UpdateGauge(fuelAmount);
-            //UIManager.instance.conditionMeter.UpdateGauge(condition);
+            UIManager.instance.conditionMeter.UpdateGauge(condition);
 
             bikeReferences.bikeRb.useGravity = false;
             wasGrounded = bikeIsGrounded;
@@ -484,10 +494,10 @@ namespace ArcadeBP_Pro
             condition = 100;
             fuelAmount = 100;
             //}
-            if (GameManager.instance.bikeSpawner.lastUsedDummyBike !=null && !isNew)
+            if (gameManager.bikeSpawner.lastUsedDummyBike !=null && !isNew)
             {
 
-                var lastDummyBike = GameManager.instance.bikeSpawner.lastUsedDummyBike;
+                var lastDummyBike = gameManager.bikeSpawner.lastUsedDummyBike;
                 condition = lastDummyBike.GetComponent<DummyBike>().condition;
                 fuelAmount = lastDummyBike.GetComponent<DummyBike>().fuelAmount;
                 var isTailActive = lastDummyBike.GetComponent<BikeComponent>().IsTailActive();
@@ -666,7 +676,7 @@ namespace ArcadeBP_Pro
 
             if (fuelAmount != previousFuel)
             {
-                bikeEvents.RaiseOnFuelUpdate(fuelAmount);
+                events.RaiseOnFuelUpdate(fuelAmount);
                 previousFuel = fuelAmount;
             }
         }
@@ -710,7 +720,7 @@ namespace ArcadeBP_Pro
             var zOffset = 0f;
             if (isDoingWheelie)
             {
-                zOffset = Mathf.Abs(wheelieAngle * bikeSettings.rearWheelRayZOffset);
+                zOffset = Mathf.Abs(currentWheelieAngle * bikeSettings.rearWheelRayZOffset);
                 //Debug.Log(zOffset);
             }
             Vector3 raycastPosition = wheelParent.position + wheelParent.up * radius;
@@ -812,11 +822,11 @@ namespace ArcadeBP_Pro
             {
                 if (bikeIsGrounded)
                 {
-                    bikeEvents.RaiseOnGrounded();
+                    events.RaiseOnGrounded();
                 }
                 else
                 {
-                    bikeEvents.RaiseOnTakeOff();
+                    events.RaiseOnTakeOff();
                 }
             }
 
@@ -1399,11 +1409,11 @@ namespace ArcadeBP_Pro
                     // Apply the new angle to the wheelie transform
                     bikeReferences.wheelieTransform.localRotation = Quaternion.Euler(newAngle, 0, 0);
 
-                    wheelieAngle = GeneralUtilities.ConvertAngleToFirstHalfStandard(
+                    currentWheelieAngle = GeneralUtilities.ConvertAngleToFirstHalfStandard(
                         bikeReferences.wheelieTransform.localRotation.eulerAngles.x);
 
                     if (!isDoingWheelie)
-                        bikeEvents.RaiseOnWheelieStart();
+                        events.RaiseOnWheelieStart();
 
                     isDoingWheelie = true;
                 }
@@ -1435,36 +1445,36 @@ namespace ArcadeBP_Pro
                     if (frontWheelIsGrounded)
                     {
                         isDoingWheelie = false;
-                        bikeEvents.RaiseOnWheelieFinish(true);
+                        events.RaiseOnWheelieFinish(true);
                     }
                 }
                 if (frontWheelIsGrounded && bikeInput.wheelie==0 && isDoingWheelie)
                 {
                     isDoingWheelie = false;
-                    bikeEvents.RaiseOnWheelieFinish(true);
+                    events.RaiseOnWheelieFinish(true);
                 }
                 //Debug.Log("Angle " + wheelieAngle);
                 //Debug.Log("Limit "+bikeSettings.wheelieAngleLimit);
-                if (wheelieAngle > bikeSettings.wheelieAngleLimit)
+                if (currentWheelieAngle > bikeSettings.wheelieAngleLimit)
                 {
                     //Debug.Log("Angulo de "+ wheelieAngle);
                     //Debug.Log("Limite de " + bikeSettings.wheelieAngleLimit);
 #if UNITY_EDITOR_64
                     //Debug.Log("Caiu por ângulo!");
 #endif
-                    bikeReferences.additionalPhysics.DislodgePlayer(isDoingWheelie);
-                    bikeEvents.RaiseOnWheelieFinish(false);
+                    additionalPhysics.DislodgePlayer(isDoingWheelie);
+                    events.RaiseOnWheelieFinish(false);
                     isDoingWheelie = false;
                 }
                 if (localBikeVelocity.magnitude > bikeSettings.wheelieMaxSpeed &&
-                    wheelieAngle > (bikeSettings.wheelieAngleLimit/3))
+                    currentWheelieAngle > (bikeSettings.wheelieAngleLimit/3))
                 {
                     //Debug.Log(wheelieAngle);
 #if UNITY_EDITOR_64
                     //Debug.Log("Caiu por velocidade!");
 #endif
-                    bikeReferences.additionalPhysics.DislodgePlayer(isDoingWheelie);
-                    bikeEvents.RaiseOnWheelieFinish(false);
+                    additionalPhysics.DislodgePlayer(isDoingWheelie);
+                    events.RaiseOnWheelieFinish(false);
                     isDoingWheelie = false;
                 }
             }
@@ -1501,12 +1511,12 @@ namespace ArcadeBP_Pro
                 // Raise event if wheelie has finished
                 if (isDoingWheelie)
                 {
-                    bikeEvents.RaiseOnWheelieFinish(true);
+                    events.RaiseOnWheelieFinish(true);
                     isDoingWheelie = false;
                 }
                 else
                 {
-                    wheelieAngle = GeneralUtilities.ConvertAngleToFirstHalfStandard(
+                    currentWheelieAngle = GeneralUtilities.ConvertAngleToFirstHalfStandard(
                            bikeReferences.wheelieTransform.localRotation.eulerAngles.x);
                 }
             }
@@ -1560,7 +1570,7 @@ namespace ArcadeBP_Pro
                 if (bikeInput.accelerate > 0 && localBikeVelocity.z > 0 &&
                     !isShiftingGear && bikeIsGrounded)
                 {
-                    bikeEvents.RaiseOnGearChange();
+                    events.RaiseOnGearChange();
                     StartCoroutine(GearChangeEffect(.5f, .3f));
                     StartCoroutine(ShiftingGear());
                 }
@@ -1794,8 +1804,8 @@ namespace ArcadeBP_Pro
                 condition=0;
 
             if (condition == 0)
-                bikeEvents.RaiseOnBikeBroken();
-            bikeEvents.RaiseOnConditionUpdate(condition);
+                events.RaiseOnBikeBroken();
+            events.RaiseOnConditionUpdate(condition);
         }
 
         public void IncreaseCondition(int repair)
@@ -1805,10 +1815,10 @@ namespace ArcadeBP_Pro
             else
             {
                 condition = 100;
-                bikeEvents.RaiseOnBikeRepaired();
+                events.RaiseOnBikeRepaired();
             }
                 
-            bikeEvents.RaiseOnConditionUpdate(condition);
+            events.RaiseOnConditionUpdate(condition);
         }
 
 

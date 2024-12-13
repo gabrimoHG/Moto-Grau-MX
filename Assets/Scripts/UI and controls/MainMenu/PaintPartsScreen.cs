@@ -6,13 +6,19 @@ public class PaintPartsScreen : MainMenuScreen
 {
     public int paintIndex {  get; private set; }
     FlexibleColorPicker colorPicker;
-
+    public Color bodyColor { get; private set; }
+    public Color rimsColor { get; private set; }
 
     protected override void Awake()
     {
         base.Awake();
-        colorPicker = transform.GetChild(1).
+        colorPicker = transform.GetChild(2).
             GetComponent<FlexibleColorPicker>();
+    }
+    public void InitializeColors()
+    {
+        bodyColor = new Color(1, 1, 1, 1);
+        rimsColor = new Color(1, 1, 1, 1);
     }
     /*private void OnEnable()
     {
@@ -45,13 +51,22 @@ public class PaintPartsScreen : MainMenuScreen
             colorPicker.onColorChange.AddListener(bikeComponent.SetRimsColor);
         }
         colorPicker.color = color;
+    }
+
+    public void SetSelectededColor(Color selectedColor)
+    {
+        if (paintIndex == 0)
+            bodyColor = selectedColor;
+        else
+            rimsColor = selectedColor;
 
     }
 
-    public override void FadeScreenIn()
+    public override void FadeScreenIn(bool directTransition = false)
     {
         base.FadeScreenIn();
         MainMenuManager.instance.FadeCompanyLogoOut();
+        MainMenuManager.instance.returnButton.FadeInAndActivate();
         var currentBike = previousScreen.GetComponent<BikeSelectionScreen>().currentBike;
         var bodyColor = currentBike.GetComponent<BikeComponent>().GetBodyColor();
         colorPicker.color = bodyColor;

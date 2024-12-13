@@ -6,5 +6,6 @@ using UnityEngine;
 
 public class RiderData : GameData
 {
-    
+    public GameObject mannequinPrefab;
+    public GameObject ragdollPrefab;
 }

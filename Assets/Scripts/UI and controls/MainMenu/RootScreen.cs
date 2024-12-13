@@ -18,15 +18,15 @@ public class RootScreen : MainMenuScreen
         MainMenuManager.instance.UpdateCurrentScreen(this);
     }
 
-    public override void FadeScreenIn()
+    public override void FadeScreenIn(bool directTransition = false)
     {
-        base.FadeScreenIn();
-        MainMenuManager.instance.returnButton.FadeOutAndDeactivate();
+        base.FadeScreenIn(directTransition);
+        MainMenuManager.instance.returnButton.FadeOutAndDeactivate(directTransition);
     }
 
-    public override void FadeScreenOut()
+    public override void FadeScreenOut(bool directTransition = false)
     {
-        base.FadeScreenOut();
+        base.FadeScreenOut(directTransition);
     }
 
     public void QuitApplication() =>

@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static ArcadeBP_Pro.ArcadeBikeControllerPro;
 
 public class DummyBike : MonoBehaviour
 {
@@ -41,10 +40,10 @@ public class DummyBike : MonoBehaviour
     private IEnumerator OverRev(float duration)
     {
         float elapsedTime = 0f;
-        var currentBike = GameManager.instance.GetCurrentBikeController();
-        var currentPitch = currentBike.bikeAudio.engineSound.pitch;
-        var currentVolume = currentBike.bikeAudio.engineSound.volume;
-        engineSound.time = currentBike.bikeAudio.engineSound.time;
+        var bikePhysicsController = FindObjectOfType<GameManager>().GetCurrentBikePhysicsController();//Revisado!
+        var currentPitch = bikePhysicsController.bikeAudio.engineSound.pitch;
+        var currentVolume = bikePhysicsController.bikeAudio.engineSound.volume;
+        engineSound.time = bikePhysicsController.bikeAudio.engineSound.time;
         engineSound.Play();
 
         while (elapsedTime < duration)

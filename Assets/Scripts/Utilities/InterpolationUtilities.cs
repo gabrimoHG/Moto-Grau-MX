@@ -249,14 +249,14 @@ namespace HistoricGamesUtils
             var color = textMeshProUGUI.color;
             float startAlpha = color.a;
             var elapsedTime = 0.0f;
-
+            //Debug.Log("Element " + textMeshProUGUI);
             while (elapsedTime < duration)
             {
                 elapsedTime += Time.deltaTime;
                 float newAlpha = Mathf.Lerp(startAlpha, targetAlpha, elapsedTime / duration);
                 color.a = newAlpha;
                 textMeshProUGUI.color = color;
-
+                //Debug.Log(elapsedTime);
                 yield return null;
             }
             color.a = targetAlpha;

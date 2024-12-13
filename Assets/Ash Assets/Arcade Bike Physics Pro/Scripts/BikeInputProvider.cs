@@ -4,7 +4,7 @@ namespace ArcadeBP_Pro
 {
     public class BikeInputProvider : MonoBehaviour
     {
-        public ArcadeBikeControllerPro arcadeBikeControllerPro;
+        ArcadeBikeControllerPro bikeController;
 
         [Header("Keyboard Inputs")]
 
@@ -64,7 +64,10 @@ namespace ArcadeBP_Pro
             SteeringRightKey = KeyCode.D;
             WheelieKey = KeyCode.LeftShift;
         }
-
+        private void Awake()
+        {
+            bikeController = GetComponent<ArcadeBikeControllerPro>();
+        }
         private void Start()
         {
             directionalHandlerController = UIManager.instance.directionalController;
@@ -130,7 +133,7 @@ namespace ArcadeBP_Pro
             }
             // Note : You can also use your custom inputs above to provide inputs to the bike controller
             // provide inputs to the bike controller
-            arcadeBikeControllerPro.ProvideInput(accelerate, reverse, handbrake, steering, wheelie);
+            bikeController.ProvideInput(accelerate, reverse, handbrake, steering, wheelie);
         }
 
     }

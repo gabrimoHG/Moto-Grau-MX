@@ -179,7 +179,7 @@ namespace ArcadeBP_Pro
         private void AddBikerAnimationControllerSetup(BikerRigReferences biker_rigs)
         {
             BikerAnimationController bikerAnimationController = targetAnimator.gameObject.AddComponent<BikerAnimationController>();
-            bikerAnimationController.bikeController = bikeController;
+            bikerAnimationController.bikePhysicsController = bikeController;
 
 
             //set up the rig references

@@ -12,10 +12,10 @@ public class RepairTools : CollectibleItem
 
     protected virtual void OnTriggerEnter(Collider other)
     {
-        var bikeController = GameManager.instance.GetCurrentBikeController();
-        var currentCondition = bikeController.condition; ;
-        if (other.transform.root.gameObject == bikeController.gameObject &&
-            bikeController.condition<100)
+        var bikePhysicsController = gameManager.GetCurrentBikePhysicsController();//Revisado!
+        var currentCondition = bikePhysicsController.condition; ;
+        if (other.transform.root.gameObject == bikePhysicsController.gameObject &&
+            bikePhysicsController.condition<100)
         {
             GetComponent<MeshRenderer>().enabled = false;
             StartCoroutine(AudioFeedbackAndEventTrigger());

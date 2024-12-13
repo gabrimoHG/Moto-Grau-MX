@@ -5,7 +5,7 @@ using ArcadeBP_Pro;
 using HistoricGamesUtils;
 public class WheelieRating : MonoBehaviour
 {
-    ArcadeBikeControllerPro bikeController;
+    ArcadeBikeControllerPro bikePhysicsController;
     float startTime;
     float speedsRecorded;
     float wheelieAngles;
@@ -19,18 +19,18 @@ public class WheelieRating : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        bikeController = FindObjectOfType<ArcadeBikeControllerPro>();
-        bikeController.bikeEvents.onWheelieStart += TriggerWheelieStatistics;
-        bikeController.bikeEvents.onWheelieFinish += ShowStatistics;
-        GameManager.instance.onPlayerBikeChange += UpdateReferences;
+        bikePhysicsController = FindObjectOfType<ArcadeBikeControllerPro>();
+        bikePhysicsController.events.onWheelieStart += TriggerWheelieStatistics;
+        bikePhysicsController.events.onWheelieFinish += ShowStatistics;
+        FindObjectOfType<GameManager>().onPlayerBikeChange += UpdateReferences;//Revisado!
     }
 
-    void UpdateReferences(ArcadeBikeControllerPro bikeController)
+    void UpdateReferences(ArcadeBikeControllerPro bikePhysicsController)
     {
         StopAllCoroutines();
-        this.bikeController = bikeController;
-        bikeController.bikeEvents.onWheelieStart += TriggerWheelieStatistics;
-        bikeController.bikeEvents.onWheelieFinish += ShowStatistics;
+        this.bikePhysicsController = bikePhysicsController;
+        bikePhysicsController.events.onWheelieStart += TriggerWheelieStatistics;
+        bikePhysicsController.events.onWheelieFinish += ShowStatistics;
     }
 
     void TriggerWheelieStatistics() => StartCoroutine(RecordWheelieStatistics());
@@ -45,13 +45,13 @@ public class WheelieRating : MonoBehaviour
         wheelieAngles = 0;
         wheelieCycles = 0;
         //Debug.Log("Is doing wheelie? "+ bikeController.isDoingWheelie);
-        if(!bikeController.isDoingWheelie)
+        if(!bikePhysicsController.isDoingWheelie)
             yield return null;
-        while (bikeController.isDoingWheelie)
+        while (bikePhysicsController.isDoingWheelie)
         {
-            currentAngle = Mathf.Abs(bikeController.bikeReferences.
+            currentAngle = Mathf.Abs(bikePhysicsController.bikeReferences.
                 wheelieTransform.localRotation.eulerAngles.x);
-            var currentSpeed = bikeController.speedKmph;
+            var currentSpeed = bikePhysicsController.speedKmph;
 
             speedsRecorded += currentSpeed;
             wheelieAngles += currentAngle;
@@ -80,8 +80,8 @@ public class WheelieRating : MonoBehaviour
             //Debug.Log("Wheelie time: " + executionTime + " seconds.");
             //Debug.Log("Wheelie average angle: " + averageAngle);
             //Debug.Log("Wheelie average speed: " + averageSpeed);
-            bikeController.bikeEvents.onWheelieFinish -= ShowStatistics;
-            bikeController.bikeEvents.onWheelieStart += TriggerWheelieStatistics;
+            bikePhysicsController.events.onWheelieFinish -= ShowStatistics;
+            bikePhysicsController.events.onWheelieStart += TriggerWheelieStatistics;
             StopCoroutine(RecordWheelieStatistics());
         }
         hasPerformed = false;

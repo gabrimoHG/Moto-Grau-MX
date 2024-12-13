@@ -10,7 +10,10 @@ public class BikeRim : MonoBehaviour
         GetComponent<MeshRenderer>().material.color = color;
     public Color GetRimColor()
     {
-        return GetComponent<MeshRenderer>().material.color;
+        if (!gameObject.scene.IsValid())
+            return GetComponent<MeshRenderer>().sharedMaterial.color;
+        else
+            return GetComponent<MeshRenderer>().material.color;
     }
     void Awake()
     {
