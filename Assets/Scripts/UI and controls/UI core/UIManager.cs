@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using ArcadeBP_Pro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System;
 
 public class UIManager : MonoBehaviour
 {
@@ -25,8 +26,13 @@ public class UIManager : MonoBehaviour
     public BikeStanceData bikeStanceData { private set; get; }
     BikeSpawner bikeSpawner;
     public ResetBikeButton resetBikeButton { private set; get; }
+    public DebugConsole debugConsole { private set; get; }
+    public GraphicsQualitySlider graphicsQualitySlider { private set; get; }
     Coroutine popupCoroutine;
     Transform panel;
+
+    public event Action onBaseUIEnabled = delegate { };
+    public event Action onBaseUIDisabled = delegate { };
     public LoadingScreensController loadingScreensController { private set; get; }
     private void Awake()
     { 
@@ -42,11 +48,11 @@ public class UIManager : MonoBehaviour
             GetComponent<UiButton_ABP_Pro>();
         handbreakButton= baseContextualUI.GetChild(3).
             GetComponent<UiButton_ABP_Pro>();
-        cameraAlternation = baseContextualUI.GetChild(6).
+        cameraAlternation = baseContextualUI.GetChild(7).
             GetComponent<CameraAlternationButton>();
-        resetBikeButton = baseContextualUI.GetChild(7).
+        resetBikeButton = baseContextualUI.GetChild(8).
             GetComponent<ResetBikeButton>();
-        bikeStanceData = baseContextualUI.GetChild(8).
+        bikeStanceData = baseContextualUI.GetChild(9).
             GetComponent<BikeStanceData>();
         conditionMeter = bikeStanceData.transform.GetChild(3).
             GetComponent<ConditionMeter>();
@@ -54,8 +60,11 @@ public class UIManager : MonoBehaviour
             GetComponent<FuelMeter>();
         onFallPopup = UnityExtensionsUtilities.
             GetComponentInChildrenIncludingInactive<OnFallPopup>(transform.GetChild(0), 1);
+        graphicsQualitySlider = panel.GetChild(2).GetChild(5).
+            GetComponent<GraphicsQualitySlider>();
         loadingScreensController = MainMenuManager.instance.
             loadingScreensTransform.GetComponent<LoadingScreensController>();
+        debugConsole = panel.GetChild(3).GetChild(1).GetComponent<DebugConsole>();
     }
 
     private void Start()
@@ -82,13 +91,21 @@ public class UIManager : MonoBehaviour
         StartCoroutine(InterpolationUtilities.AlphaToTargetLinearly(image, 0, .75f));
     }
     public void EnableOnFallPopup()=>
-            popupCoroutine= StartCoroutine(EnableOnFallPopupAfterDelay(2));
+        popupCoroutine= StartCoroutine(EnableOnFallPopupAfterDelay(2));
     public void EnableResetBikeButton()=>
-            resetBikeButton.gameObject.SetActive(true);
+        resetBikeButton.gameObject.SetActive(true);
     public void DisableResetBikeButton()=>
-            resetBikeButton.gameObject.SetActive(false);
-    public void DisableBaseUI() => baseContextualUI.gameObject.SetActive(false);
-    public void EnableBaseUI() => baseContextualUI.gameObject.SetActive(true);
+        resetBikeButton.gameObject.SetActive(false);
+    public void DisableBaseUI()
+    {
+        baseContextualUI.gameObject.SetActive(false);
+        onBaseUIDisabled();
+    }
+    public void EnableBaseUI()
+    {
+        baseContextualUI.gameObject.SetActive(true);
+        onBaseUIEnabled();
+    }
     public IEnumerator EnableOnFallPopupAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);

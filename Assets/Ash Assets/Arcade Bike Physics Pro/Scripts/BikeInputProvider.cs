@@ -87,7 +87,7 @@ namespace ArcadeBP_Pro
             accelerate = (Input.GetKey(AccelerateKey) || accelerateButton?.isPressed == true) ? 1f : 0f;
             reverse = (Input.GetKey(ReverseKey) || reverseButton?.isPressed == true) ? 1f : 0f;
             handbrake = (Input.GetKey(HandBrakeKey) || handBrakeButton?.isPressed == true) ? 1f : 0f;
-            float verticalDeadZone = .3f;
+            float verticalDeadZone = .5f;
             float horizontalDeadZone = .5f;
             //Debug.Log("Horizontal " + directionalHandlerController.direction.x);
             //Debug.Log("Vertical "+directionalHandlerController.direction.y);

@@ -11,7 +11,7 @@ public class CollectibleController : MonoBehaviour
     GameManager gameManager;
     [SerializeField] int respawnCooldown;
     CollectibleZone playerClosestZone;
-    protected List<CollectibleItem> elements;
+    protected List<CollectibleItem> collectibles;
     protected List<CollectibleZone> zones;
     protected virtual void Awake()
     {
@@ -20,7 +20,7 @@ public class CollectibleController : MonoBehaviour
     }
     void SetInternalData()
     {
-        elements = new List<CollectibleItem>();
+        collectibles = new List<CollectibleItem>();
         zones = new List<CollectibleZone>();
         foreach (Transform t in transform)
             zones.Add(t.GetComponent<CollectibleZone>());
@@ -28,7 +28,7 @@ public class CollectibleController : MonoBehaviour
         {
             foreach (Transform element in zone.transform)
             {
-                elements.Add(element.GetComponent<CollectibleItem>());
+                collectibles.Add(element.GetComponent<CollectibleItem>());
                 element.GetComponent<CollectibleItem>().onCollected += TriggerDisableTemporarily;
             }
         }
@@ -65,16 +65,21 @@ public class CollectibleController : MonoBehaviour
                 SetSubscriptionsByItemType(element.GetComponent<CollectibleItem>());
         }
     }
+
     void SetSubscriptionsByItemType(CollectibleItem collectibleItem)
     {
+        //Debug.Log("Subscribing element " + collectibleItem);
         var bikePhysicsController = gameManager.GetCurrentBikePhysicsController();//Revisado!
+
         switch (collectibleItem)
         {
             case FuelCanister fuelCanister:
                 fuelCanister.onAmountSent += bikePhysicsController.Refuel;
+                //Debug.Log("Fuel canister subscribed!");
                 break;
             case RepairTools repairTools:
                 repairTools.onAmountSent += bikePhysicsController.Repair;
+                //Debug.Log("Repair tools subscribed!");
                 break;
             default:
                 break;
@@ -88,6 +93,7 @@ public class CollectibleController : MonoBehaviour
         item.gameObject.SetActive(false);
         yield return new WaitForSeconds(respawnCooldown);
         item.gameObject.SetActive(true);
+        item.gameObject.GetComponent<Collider>().enabled = true;
     }
 
     IEnumerator ZonesAvailability()

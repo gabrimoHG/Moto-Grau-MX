@@ -15,8 +15,13 @@ public class FuelCanister : CollectibleItem
             bikePhysicsController.fuelAmount < 100)
         {
             GetComponent<MeshRenderer>().enabled = false;
+            GetComponent<Collider>().enabled = false;
             StartCoroutine(AudioFeedbackAndEventTrigger());
             onAmountSent(powerUpAmount);
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            //UIManager.instance.debugConsole.
+            //    AddMessage("Refuel triggered!");
+#endif
         }
     }
 }

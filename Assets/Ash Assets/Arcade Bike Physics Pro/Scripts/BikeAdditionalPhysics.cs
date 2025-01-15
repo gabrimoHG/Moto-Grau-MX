@@ -96,6 +96,8 @@ public class BikeAdditionalPhysics : MonoBehaviour
             damage = Mathf.Lerp(0, 100, clampedImpact / impactCeiling);
             crashOutputDegree = Mathf.Lerp(0, 35, (crashImpact - 2) / (impactThresholdToFall - 2));
             wheelieTransform.localRotation = Quaternion.Euler(crashOutputDegree, 0, 0);
+            //Debug.Log("Clamped impact "+clampedImpact);
+            //Debug.Log("Damage "+damage);
         }
         else if (bikeController.isDoingWheelie)
         {
@@ -129,6 +131,7 @@ public class BikeAdditionalPhysics : MonoBehaviour
         }
         //Debug.Log("Damage " + damage);
         bikeController.DecreaseCondition((int)damage);
+        
         damage = 0;
         StartCoroutine(CollisionCooldownRoutine());
         //Debug.Log(crashImpact);
@@ -222,7 +225,9 @@ public class BikeAdditionalPhysics : MonoBehaviour
 
 
         //Debug.Log("Damage " + damage);
-        bikeController.DecreaseCondition((int)damage);
+        if(isDoingWheelie || isDoingStoppie)
+            bikeController.DecreaseCondition((int)damage);
+        //Debug.Log("Decrease damage call 2");
         gameObject.SetActive(false);
         collisionCooldown = false;
         onDislodged();

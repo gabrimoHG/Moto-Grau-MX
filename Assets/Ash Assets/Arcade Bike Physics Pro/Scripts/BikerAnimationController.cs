@@ -163,7 +163,8 @@ namespace ArcadeBP_Pro
         private void Awake()
         {
             bikePhysicsController = transform.root.GetComponent<ArcadeBikeControllerPro>();
-
+            bikePhysicsController.GetComponent<BikeAdditionalPhysics>().
+                characterAnimator = GetComponent<Animator>();
             InitializeRigTargets();
         }
         void Start()

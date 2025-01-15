@@ -6,8 +6,7 @@ public class CareerModeButton : MainMenuButton
 {
     public override void OnClick()
     {
-        warningPopup.SetMessage("Modo carreira será implementado" +
-            " no futuro caso o projeto cresça!");
+        warningPopup.SetMessage("O modo carreira está em desenvolvimento...");
         warningPopup.FadeIn();
     }
 }

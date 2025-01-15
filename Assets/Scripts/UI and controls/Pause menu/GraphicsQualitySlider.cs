@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 public class GraphicsQualitySlider : MonoBehaviour
 {
+    GameManager gameManager;
     public Slider slider { protected set; get; }
     public TextMeshProUGUI currentSelectionUI { protected set; get; }
     // Start is called before the first frame update
@@ -13,6 +14,7 @@ public class GraphicsQualitySlider : MonoBehaviour
         slider = GetComponent<Slider>();
         currentSelectionUI = transform.GetChild(4).
             GetComponent<TextMeshProUGUI>();
+        gameManager = FindObjectOfType<GameManager>();
     }
     private void Start()
     {
@@ -22,13 +24,13 @@ public class GraphicsQualitySlider : MonoBehaviour
     void OnEnable()
     {
         UpdateCurrentSelection(slider.value);
-        //slider.onValueChanged.AddListener(GameManager.instance.SetGraphicQuality);
+        slider.onValueChanged.AddListener(gameManager.SetGraphicQuality);
         slider.onValueChanged.AddListener(UpdateCurrentSelection);
     }
 
     void OnDisable()
     {
-        //slider.onValueChanged.RemoveListener(GameManager.instance.SetGraphicQuality);
+        slider.onValueChanged.RemoveListener(gameManager.SetGraphicQuality);
         slider.onValueChanged.RemoveListener(UpdateCurrentSelection);
     }
 

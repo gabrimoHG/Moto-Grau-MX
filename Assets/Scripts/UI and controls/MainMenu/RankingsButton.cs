@@ -6,8 +6,8 @@ public class RankingsButton : MainMenuButton
 {
     public override void OnClick() 
     { 
-        warningPopup.SetMessage("Planejo criar rankings com" +
-           " os melhores e maiores graus nas próximas versões (em um futuro próximo!).");
+        warningPopup.SetMessage("Recurso surpresa a ser" +
+            " incluído nas próximas versões.");
         warningPopup.FadeIn();
     }
 

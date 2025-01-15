@@ -5,7 +5,6 @@ using HistoricGamesUtils;
 using Unity.Burst.CompilerServices;
 using System.Linq;
 
-
 namespace ArcadeBP_Pro
 {
     public class ArcadeBikeControllerPro : MonoBehaviour
@@ -330,9 +329,13 @@ namespace ArcadeBP_Pro
                 onWheelieFinish(hasSucceeded);
             public event Action onBikeBroken = delegate { };
             public void RaiseOnBikeBroken()=>onBikeBroken();
+            public event Action onBikeOutOfFuel = delegate { };
+            public void RaiseOnBikeOutOfFuel() => onBikeOutOfFuel();
 
             public event Action onBikeRepaired = delegate { };
             public void RaiseOnBikeRepaired()=>onBikeRepaired();
+            public event Action onBikeRefueled = delegate { };
+            public void RaiseOnBikeRefueled() => onBikeRefueled();
             public void RaiseOnConditionUpdate(int bikeCondition) =>
                 onConditionUpdate(bikeCondition);
             public event Action<int> onConditionUpdate = delegate { };
@@ -401,6 +404,9 @@ namespace ArcadeBP_Pro
         private ParticleSystem tireSmoke_ps;
         Vector3 lastValidPosition;
         bool isWaitingOnReset;
+
+        GasCanistersController gasCannistersController;
+        RepairToolsController repairToolsController;
        
         #endregion
 
@@ -410,12 +416,16 @@ namespace ArcadeBP_Pro
         private void Awake()
         {
             additionalPhysics = GetComponent<BikeAdditionalPhysics>();
+            gasCannistersController = FindObjectOfType<GasCanistersController>();
+            repairToolsController = FindObjectOfType<RepairToolsController>();
             gameManager = FindObjectOfType<GameManager>();
             SkidmarksSet();
             TireSmokeParticleSet();
         }
         private void OnDestroy()
         {
+            gasCannistersController.Unsubscription(this);
+            repairToolsController.Unsubscription(this);
             //Debug.Log($"{name} - Physics controller destroyed at frame {Time.frameCount}");
         }
         void SkidmarksSet()
@@ -493,6 +503,7 @@ namespace ArcadeBP_Pro
             //{
             condition = 100;
             fuelAmount = 100;
+            previousFuel = fuelAmount;
             //}
             if (gameManager.bikeSpawner.lastUsedDummyBike !=null && !isNew)
             {
@@ -635,22 +646,47 @@ namespace ArcadeBP_Pro
 
         #region Fuel and condition
         public void Refuel(int refuelAmount) 
-        { 
-            if((fuelAmount+=refuelAmount)>100)
+        {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            //UIManager.instance.debugConsole.
+            //    AddMessage("Fuel on enter " + fuelAmount);
+#endif
+            //Debug.Log("Fuel on enter" + fuelAmount);
+            fuelAmount += refuelAmount;
+
+            if(fuelAmount>100)
                 fuelAmount= 100;
-            else
-                fuelAmount += refuelAmount;
-            //bikeEvents.RaiseOnFuelUpdate(fuelAmount);
+
+            //Debug.Log("Fuel on exit" + fuelAmount);
+
+            events.RaiseOnBikeRefueled();
+            events.RaiseOnFuelUpdate(fuelAmount);
         }
         public void Repair(int repairAmount)
         {
-            if ((condition += repairAmount) > 100)
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            //UIManager.instance.debugConsole.
+            //AddMessage("Entering Repair() on " + this.gameObject);
+#endif
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            //UIManager.instance.debugConsole.
+            //    AddMessage("Condition on enter " + condition);
+#endif
+            //Debug.Log("Condition on enter " + condition);
+            condition += repairAmount;
+            if (condition > 100)
             {
                 condition = 100;
                 GetComponent<BikeComponent>().TriggerDetachablesPartsFix();
             }
-            else
-                condition += repairAmount;
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            //UIManager.instance.debugConsole.
+            //    AddMessage("Condition on exit " + condition);
+#endif
+
+            events.RaiseOnBikeRepaired();
+            events.RaiseOnConditionUpdate(condition);
         }
         void ConsumeFuel()
         {
@@ -677,7 +713,10 @@ namespace ArcadeBP_Pro
             if (fuelAmount != previousFuel)
             {
                 events.RaiseOnFuelUpdate(fuelAmount);
+                //Debug.Log("On fuel update call!");
                 previousFuel = fuelAmount;
+                if (fuelAmount == 0)
+                    events.RaiseOnBikeOutOfFuel();
             }
         }
 
@@ -1067,20 +1106,26 @@ namespace ArcadeBP_Pro
                     }
                     if (isAcceleratingInput)
                     {
-                        
 
-                        targetAcceleration = currentSpeed >= 0
+                        float maxAllowedSpeed = Mathf.Max(speedLimit, 0f);
+
+                        if (currentSpeed < maxAllowedSpeed)
+                        {
+                            targetAcceleration = Mathf.Min(
+                                slopeAdjustedAcceleration * bikeCurves.accelerationCurve.Evaluate(localBikeVelocity.magnitude / maxAllowedSpeed),
+                                (maxAllowedSpeed - currentSpeed) / Time.fixedDeltaTime
+                            );
+                        }
+
+                        isApplyingBrake = currentSpeed < 0; // Maintain braking behavior for reverse speeds
+                        /*targetAcceleration = currentSpeed >= 0
                             ? Mathf.Min(slopeAdjustedAcceleration * bikeCurves.
                             accelerationCurve.Evaluate(localBikeVelocity.magnitude / speedLimit),
                             (speedLimit - currentSpeed) / Time.fixedDeltaTime)
                             : bikeSettings.deceleration;
-                        /*targetAcceleration = currentSpeed >= 0
-                            ? Mathf.Min(bikeSettings.acceleration * bikeCurves.
-                            accelerationCurve.Evaluate(localBikeVelocity.magnitude / speedLimit)
-                            , (speedLimit - currentSpeed) / Time.fixedDeltaTime)
-                            : bikeSettings.deceleration;*/
+                       
 
-                        isApplyingBrake = currentSpeed < 0;
+                        isApplyingBrake = currentSpeed < 0;*/
                     }
                     else if (isReversingInput)
                     {
@@ -1356,7 +1401,7 @@ namespace ArcadeBP_Pro
             float speedFactor = Mathf.InverseLerp(bikeSettings.wheelieMinSpeed,
                 bikeSettings.wheelieMaxSpeed, localBikeVelocity.magnitude);
 
-            if ((bikeInput.wheelie < 0 || isDoingWheelie) && rearWheelIsGrounded &&
+            if ((bikeInput.wheelie < .2f || isDoingWheelie) && rearWheelIsGrounded &&
                 localBikeVelocity.magnitude >= bikeSettings.wheelieMinSpeed && !isRestricted)
             {
                 float surfaceAngle_rear = Vector3.Angle(groundNormal_rear, Vector3.up);
@@ -1478,12 +1523,8 @@ namespace ArcadeBP_Pro
                     isDoingWheelie = false;
                 }
             }
-            else
+            else// if(rearWheelIsGrounded)
             {
-                //UnityEngine.Debug.Log("It isn't performing a wheelie!");
-                //UnityEngine.Debug.Log("Wheelie angle " + currentAngle);
-
-                // Convert angle to range -180 to 180
                 float currentAngle = bikeReferences.wheelieTransform.localRotation.eulerAngles.x;
                 if (currentAngle > 180)
                     currentAngle -= 360;
@@ -1505,10 +1546,8 @@ namespace ArcadeBP_Pro
                     Debug.Log("Snapped!");
                 }
 
-                // Update the bike's rotation with the new angle
                 bikeReferences.wheelieTransform.localRotation = Quaternion.Euler(newAngle, 0, 0);
 
-                // Raise event if wheelie has finished
                 if (isDoingWheelie)
                 {
                     events.RaiseOnWheelieFinish(true);
@@ -1519,8 +1558,23 @@ namespace ArcadeBP_Pro
                     currentWheelieAngle = GeneralUtilities.ConvertAngleToFirstHalfStandard(
                            bikeReferences.wheelieTransform.localRotation.eulerAngles.x);
                 }
-            }
-            //UnityEngine.Debug.Log("Is rear wheel grounded: " + rearWheelIsGrounded);
+            }/*
+            else
+            {
+                // Handle the return of the rear wheel to the ground
+                float currentAngle = bikeReferences.wheelieTransform.localRotation.eulerAngles.x;
+                if (currentAngle > 180)
+                    currentAngle -= 360;
+                //Debug.Log(currentAngle);
+                // Combine gravity and weight for the downward acceleration
+                float dropAcceleration = bikeSettings.gravity + 50;
+
+                // Calculate the new angle, moving toward 0
+                float newAngle = Mathf.MoveTowards(currentAngle, 0, dropAcceleration * Time.deltaTime);
+
+                // Apply the new rotation
+                bikeReferences.wheelieTransform.localRotation = Quaternion.Euler(newAngle, 0, 0);
+            }*/
         }
 
         #endregion
@@ -1806,20 +1860,18 @@ namespace ArcadeBP_Pro
             if (condition == 0)
                 events.RaiseOnBikeBroken();
             events.RaiseOnConditionUpdate(condition);
+            //Debug.Log("On condition update via DecreaseCondition()");
         }
 
-        public void IncreaseCondition(int repair)
+        /*public void IncreaseCondition(int repair)
         {
             if ((condition + repair) <= 100)
                 condition += repair;
             else
-            {
                 condition = 100;
-                events.RaiseOnBikeRepaired();
-            }
-                
+            events.RaiseOnBikeRepaired();
             events.RaiseOnConditionUpdate(condition);
-        }
+        }*/
 
 
 #if UNITY_EDITOR

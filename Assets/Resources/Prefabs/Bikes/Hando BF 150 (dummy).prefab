@@ -248,7 +248,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 656530453736892340}
-  m_Mesh: {fileID: 4148525466444841153, guid: e8b58a15fabd21f4096c1070e5b710f4, type: 3}
+  m_Mesh: {fileID: -8827078404931003501, guid: e8b58a15fabd21f4096c1070e5b710f4, type: 3}
 --- !u!23 &4268861039750013249
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1266,8 +1266,8 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 4ed57de0bc7ca7045a94eed82e11c4f7, type: 2}
-  - {fileID: 2100000, guid: 3a8211ee256418243bd85828f5a7295a, type: 2}
   - {fileID: 2100000, guid: 7d7d76d4ec6707544981088deb413151, type: 2}
+  - {fileID: 2100000, guid: 3a8211ee256418243bd85828f5a7295a, type: 2}
   - {fileID: 2100000, guid: 0ab8754c14140584ba55ff7615f91f0c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
@@ -1652,6 +1652,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4834123806576459433}
   - component: {fileID: 8899777207255778710}
+  - component: {fileID: 8867920865075796202}
   - component: {fileID: 5171062364745489771}
   - component: {fileID: 686348944212032993}
   m_Layer: 7
@@ -1708,6 +1709,37 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!205 &8867920865075796202
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6807432397228577837}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: -0.0048921406, y: 0.605255, z: 0.028937519}
+  m_Size: 5
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.09787728
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 1136104883233863400}
+    - renderer: {fileID: 4268861039750013249}
+    - renderer: {fileID: 7048788325671875634}
+    - renderer: {fileID: 2390348576197641619}
+    - renderer: {fileID: 6186786596005398217}
+    - renderer: {fileID: 7051114378917082833}
+    - renderer: {fileID: 6140536846707478287}
+    - renderer: {fileID: 896868247800832303}
+    - renderer: {fileID: 2343816019389694220}
+    - renderer: {fileID: 8274051648553183624}
+    - renderer: {fileID: 7586657367721968045}
+    - renderer: {fileID: 5486266861622827910}
+    - renderer: {fileID: 233673347074804451}
+  m_Enabled: 1
 --- !u!114 &5171062364745489771
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1746,6 +1778,7 @@ MonoBehaviour:
   bikeRims:
   - {fileID: 4275347694334582373}
   - {fileID: 5621106575041030985}
+  isModelOnly: 0
 --- !u!1 &6913408966591356051
 GameObject:
   m_ObjectHideFlags: 0

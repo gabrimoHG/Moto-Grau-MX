@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d04cc5ee9fd8c9a4cabc318e1b5cae6e, type: 3}
+  m_Name: JohnWheelie
+  m_EditorClassIdentifier: 
+  title: "Jo\xE3o do Grau"
+  id: 0
+  mannequinPrefab: {fileID: 2374691305730442668, guid: 1ff69b3fbfd4eff4583c3f17e337e685,
+    type: 3}
+  ragdollPrefab: {fileID: 6231756698588248777, guid: c48cd3cb195f43c42a4cfe9be21f45e0,
+    type: 3}

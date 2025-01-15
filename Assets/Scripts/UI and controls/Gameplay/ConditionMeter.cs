@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class ConditionMeter : Gauge
 {
+    bool isFadeChecking;
+    float normalizedCondition;
     protected override void Start()
     {
         base.Start();
@@ -14,14 +16,32 @@ public class ConditionMeter : Gauge
         {
             bikePhysicsController.events.onConditionUpdate += UpdateImageInfo;
             gameManager.onPlayerBikeChange += UpdateSubscription;
-            UpdateImageInfo(bikePhysicsController.condition);
+            //UpdateImageInfo(bikePhysicsController.condition);
         }
+        //UIManager.instance.onBaseUIEnabled += SetFadeCheck;
+        bikePhysicsController.events.onBikeRepaired += StopFading;
+        bikePhysicsController.events.onBikeBroken += SetFading;
     }
-    
+
+    private void OnEnable()
+    {
+        if (fadeLoop != null)
+            StartCoroutine(FadeLoop());
+    }
+    private void SetFading()
+    {
+        fadeLoop = StartCoroutine(FadeLoop());
+        bikePhysicsController.events.onBikeBroken -= SetFading;
+    }
+
     void UpdateSubscription(ArcadeBikeControllerPro bikePhysicsController)
     {
         this.bikePhysicsController = bikePhysicsController;
         bikePhysicsController.events.onConditionUpdate += UpdateImageInfo;
+        bikePhysicsController.events.onBikeRepaired += StopFading;
+        bikePhysicsController.events.onBikeBroken += SetFading;
+        if (bikePhysicsController.condition > 0)
+            StopFading();
     }
     public void UpdateGauge(int condition)
     {
@@ -38,11 +58,33 @@ public class ConditionMeter : Gauge
             yield return new WaitForSeconds(0.1f);
         }
     }
+
+    protected override void StopFading()
+    {
+        if (fadeLoop != null)
+        {
+            StopAllCoroutines();
+            fadeLoop = null;
+            Color spriteColor = imageContent.color;
+            spriteColor.a = 1f;
+            imageContent.color = spriteColor;
+            UpdateImageInfo(bikePhysicsController.condition);
+            bikePhysicsController.events.onBikeBroken += SetFading;
+            Debug.Log("Stop fading and color update!");
+            //Debug.Log("Stop fade loop!");
+        }
+    }
+
     void UpdateImageInfo(int condition)
     {
-        float normalizedCondition = Mathf.Clamp01(condition / 100f);
+        normalizedCondition = Mathf.Clamp01(condition / 100f);
         Color interpolatedColor = Color.Lerp(lowColor, highColor, normalizedCondition);
-        
         imageContent.color = interpolatedColor;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+        //UIManager.instance.debugConsole.
+        //        AddMessage("Normalized condition " + normalizedCondition);
+#endif
+        //Debug.Log("Result color " + interpolatedColor);
+        //Debug.Log("Normalized condition " + normalizedCondition);
     }
 }

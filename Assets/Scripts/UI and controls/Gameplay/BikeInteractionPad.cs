@@ -14,6 +14,7 @@ public class BikeInteractionPad : MonoBehaviour
     Camera mainCamera;
     GraphicRaycaster raycaster;
     public event Action onClicked = delegate { };
+    bool isActivated;
     private void Awake()
     {
         bikeSpawner = transform.parent.GetComponent<BikeSpawner>();
@@ -61,17 +62,22 @@ public class BikeInteractionPad : MonoBehaviour
             if (bikeSpawner.closestDistance <= 5 && angleToButton <= 15)
             {
                 if (material.color.a < 1)
-                    StartCoroutine(InterpolationUtilities.AlphaToTargetLinearly(material, 1, .5f));
+                    StartCoroutine(InterpolationUtilities.
+                        AlphaToTargetLinearly(material, 1, .5f, EnableCollider));
             }
             else
             {
                 if (material.color.a > 0)
-                    StartCoroutine(InterpolationUtilities.AlphaToTargetLinearly(material, 0, .25f));
+                    StartCoroutine(InterpolationUtilities.
+                        AlphaToTargetLinearly(material, 0, .25f, DisableCollider));
             }
             //yield return null;
             yield return new WaitForSeconds(.1f);
         }
     }
+
+    void EnableCollider() => GetComponent<Collider>().enabled = true;
+    void DisableCollider() => GetComponent<Collider>().enabled = false;
     private IEnumerator RotateButtonTowardsPlayer()
     {
         var camera = Camera.main;
@@ -134,10 +140,10 @@ public class BikeInteractionPad : MonoBehaviour
     {
         while (true)
         {
-            if (Input.touchCount > 0 || Input.GetMouseButtonDown(0))
+            if (!isActivated && (Input.touchCount > 0 || Input.GetMouseButtonDown(0)))
             {
+                isActivated = true;
                 Vector2 touchPosition;
-
                 if (Input.touchCount > 0)
                     touchPosition = Input.GetTouch(0).position;
                 else
@@ -151,12 +157,10 @@ public class BikeInteractionPad : MonoBehaviour
                 if (Physics.Raycast(ray, out hit, Mathf.Infinity, worldUILayer))
                     UIManager.instance.PanelFadeIn();
             }
-                
-            yield return null;
-            //yield return null;
+
+            yield return new WaitUntil(() => Input.touchCount == 0 && !Input.GetMouseButton(0));
+            isActivated = false;
         }
     }
-
-
 
 }

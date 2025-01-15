@@ -10,10 +10,12 @@ public class CollectibleItem : MonoBehaviour
     public event Action<CollectibleItem> onCollected = delegate { };
     [SerializeField] protected int powerUpAmount;
     protected AudioSource audioSource;
+    Vector3 standardPosition;
     protected virtual void Awake()
     {
         gameManager = FindObjectOfType<GameManager>();
         audioSource = GetComponent<AudioSource>();
+        standardPosition = transform.position;
     }
     protected virtual void OnEnable()
     {
@@ -28,7 +30,7 @@ public class CollectibleItem : MonoBehaviour
     
     protected virtual void IconMovementUp()
     {
-        var currentPostion = transform.position;
+        var currentPostion = standardPosition;
         var targetPosition = new Vector3(currentPostion.x,
             currentPostion.y + .5f, currentPostion.z);
         StartCoroutine(InterpolationUtilities.MoveToTargetLinearly(transform,

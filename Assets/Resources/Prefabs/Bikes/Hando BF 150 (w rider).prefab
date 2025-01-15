@@ -717,8 +717,6 @@ MonoBehaviour:
   cameraController: {fileID: 7696021697701266930}
   dummyBikePrefab: {fileID: 6807432397228577837, guid: acdcb72bb0a2af447a9dc2b02871cc11,
     type: 3}
-  characterRagdollPrefab: {fileID: 5862566900047247827, guid: 45bfcc4bdea4c2f42ba1ffe71b58a1f9,
-    type: 3}
   characterAnimator: {fileID: 6039254477497104814}
   impactCeiling: 50
   impactThresholdToFall: 10
@@ -2891,7 +2889,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0eaffcf3e3ba8a942a097000c370391a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bikeController: {fileID: 635373006120758433}
+  bikePhysicsController: {fileID: 0}
   riderData: {fileID: 0}
   maxHipPosOffset: 0.05
   maxHipRotOffset: 10
@@ -5319,6 +5317,7 @@ MonoBehaviour:
   perspectiveChangeDuration: 0.5
   defaultFPSYOffset: 10
   onWheelieFPSYOffset: -30
+  isFirstPersonCamDynamic: 0
 --- !u!1 &5463084591287109828
 GameObject:
   m_ObjectHideFlags: 0
@@ -7818,7 +7817,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8248dfc170f276d4ea4bb86c3c823b41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resistanceDuration: 6
+  resistanceDuration: 5
   tailResistance: 100
   scrapeTickInterval: 0.5
   collisionParticle: {fileID: 3190203907336234381}

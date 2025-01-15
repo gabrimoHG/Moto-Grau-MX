@@ -158,7 +158,7 @@ public class TailSection : MonoBehaviour
                 tailStatus = null;
                 isScraping = false;
                 scrapingSound.Stop();
-                gameManager.GetCurrentBikePhysicsController().DecreaseCondition(1);//Revisado!
+                gameManager.GetCurrentBikePhysicsController().DecreaseCondition(1);
             }
             yield return null;
         }

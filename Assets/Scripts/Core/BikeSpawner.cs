@@ -4,11 +4,8 @@ using HistoricGamesUtils;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using Unity.VisualScripting.Antlr3.Runtime.Tree;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.AI;
-using UnityEngine.Rendering;
 
 public class BikeSpawner : MonoBehaviour
 {
@@ -18,12 +15,26 @@ public class BikeSpawner : MonoBehaviour
     BikesController bikesController;
     List<BikeData> spawnableBikes;
     List<Transform> spawnedBikes;
-    [SerializeField]List<Vector3> initialSpawnPoints;
-    public Vector3 SortInitialSpawnPoint()
+    //[SerializeField]List<Vector3> initialSpawnPoints;
+    List<KeyValuePair<Vector3, float>> initialSpawnPoints;
+     
+    public KeyValuePair<Vector3, float> SortInitialSpawnPoint()
     {
+        if (initialSpawnPoints == null)
+        {
+            var firstPoint = new KeyValuePair<Vector3, float>(new Vector3(635.52f, -6.37f, 648.58f), 180);
+            var secondPoint = new KeyValuePair<Vector3, float>(new Vector3(602.5f, -6.245f, 581.46f), 270);
+            var thirdPoint = new KeyValuePair<Vector3, float>(new Vector3(467.3f, -6.18f, 508.5f), 150);
+            var fourthPoint = new KeyValuePair<Vector3, float>(new Vector3(456.9f, -6.18f, 352.65f), 45);
+            initialSpawnPoints = new List<KeyValuePair<Vector3, float>>();
+            initialSpawnPoints.Add(firstPoint);
+            initialSpawnPoints.Add(secondPoint);
+            initialSpawnPoints.Add(thirdPoint);
+            initialSpawnPoints.Add(fourthPoint);
+        }
         return GeneralUtilities.GetRandomItem(initialSpawnPoints);
     }
-    GameObject lastBike;
+    public GameObject lastBike { get; private set; }
     Transform lastSpot;
     public GameObject lastUsedDummyBike { get; private set; }
     public int lastCameraIndex { get; private set; }
@@ -81,9 +92,6 @@ public class BikeSpawner : MonoBehaviour
         //Debug.Log(bikeController + " isNew: " + isNew);
         Destroy(controller.skidmarkController.gameObject);
         Destroy(controller.gameObject);
-
-       
-
 
         var instance = Instantiate(bikeData.dummyPrefab, position, rotation);
         if (condition != 100 || fuelAmount != 100)
@@ -152,6 +160,10 @@ public class BikeSpawner : MonoBehaviour
         {
             if (spawnableBikes[i].id == bikePhysicsController.id)
             {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                //UIManager.instance.debugConsole.AddMessage(
+                //    "Bike " + spawnableBikes[i].title + " removed!");
+#endif
                 spawnableBikes.RemoveAt(i);
                 break;
             }
@@ -163,30 +175,32 @@ public class BikeSpawner : MonoBehaviour
         var tempSpots = new List<Transform>(commonSpots);
         var bikePhysicsController = gameManager.GetCurrentBikePhysicsController();//Revisado!
 
-        RemoveClosesSpot(bikePhysicsController.transform, tempSpots);
+        RemoveClosestSpot(bikePhysicsController.transform, tempSpots);
         spawnedBikes = new List<Transform>();
         /*if (lastSpot!=null)
             tempSpots.Remove(lastSpot);*/
         if (lastBike != null)
         {
             spawnedBikes.Add(lastBike.transform);
-            //Debug.Log("Last bike added!");
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            //UIManager.instance.debugConsole.AddMessage(
+            //"Last player bike " + lastBike.name + " will be spawned!");
+#endif
         }
 
-        foreach(var bike in spawnableBikes)
+        foreach (var bike in spawnableBikes)
         {
             var chosenSpot = GeneralUtilities.GetRandomItem(tempSpots);
             
             if (chosenSpot.childCount > 0)
             {
                 spawnedBikes.Add(chosenSpot.GetChild(0));
-                //Debug.Log("Bike created previously added!");
                 continue;
             }
             //if (Vector3.Distance(bikeController.transform.position, chosenSpot.position) < 10)
                 //continue;
             var instance = Instantiate(bike.dummyPrefab, chosenSpot.position,
-                Quaternion.identity, chosenSpot);
+                chosenSpot.localRotation, chosenSpot);
             var bodyColor = GeneralUtilities.GetRandomUnityColor();
             var rimColor = GeneralUtilities.GetRandomAchromaticColor();
             instance.GetComponent<BikeComponent>().SetBodyColor(bodyColor);
@@ -194,11 +208,15 @@ public class BikeSpawner : MonoBehaviour
             instance.GetComponent<DummyBike>().isShowcase = true;
             instance.GetComponent<Rigidbody>().isKinematic = true;
             spawnedBikes.Add(instance.transform);
+#if DEVELOPMENT_BUILD
+            //UIManager.instance.debugConsole.AddMessage(
+            //        "Bike " + bike.title + " spawned!");
+#endif
             //Debug.Log("New instantiated bike added!");
         }
         //lastSpot = null;
     }
-    void RemoveClosesSpot(Transform controllerTransform,
+    void RemoveClosestSpot(Transform controllerTransform,
         List<Transform> spawnSpots)
     {
         for (int i = spawnSpots.Count - 1; i >= 0; i--) 

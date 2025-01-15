@@ -513,7 +513,7 @@ namespace HistoricGamesUtils
                         material.SetInt("_Mode", 2);
                         material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
                         material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                        material.SetFloat("_ZWrite", 0);
+                        material.SetFloat("_ZWrite", 1);
                         material.DisableKeyword("_ALPHATEST_ON");
                         material.EnableKeyword("_ALPHABLEND_ON");
                         material.DisableKeyword("_ALPHAPREMULTIPLY_ON");

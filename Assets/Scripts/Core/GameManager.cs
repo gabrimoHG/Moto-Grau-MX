@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -15,6 +16,15 @@ public class GameManager : MonoBehaviour
     Quaternion spawnRotation;
     ArcadeBikeControllerPro bikePhysicsController;
     public event Action<ArcadeBikeControllerPro> onPlayerBikeChange = delegate { };
+    UIManager uiManager;
+    public int targetFrameRate = 60;
+    public int secondaryTargetFrameRate = 30;
+    public float calibrationDuration = 5f;
+    private int currentQualityLevel;
+    private bool isCalibrating = true;
+    private float timeElapsed = 0;
+    private float fpsAccumulator = 0;
+    private int frameCount = 0;
     public ArcadeBikeControllerPro GetCurrentBikePhysicsController() 
     {
         return bikePhysicsController; 
@@ -23,6 +33,9 @@ public class GameManager : MonoBehaviour
     {
         this.bikePhysicsController = bikePhysicsController;
         this.bikePhysicsController.SetConsumablesStatus();
+        bikeAdditionalPhysics = bikePhysicsController.
+            GetComponent<BikeAdditionalPhysics>();
+        bikeAdditionalPhysics.onDislodged += UpdateSpawnTransform;
         onPlayerBikeChange(this.bikePhysicsController);
     }
 
@@ -53,11 +66,70 @@ public class GameManager : MonoBehaviour
             Debug.Log("Physics controller is valid!");*/
         //Debug.Log($"{name} - Game Manager Awake called at frame {Time.frameCount}");
     }
-
     private void Start()
     {
-        
+        /*if (PlayerPrefs.HasKey("GraphicQuality"))
+            QualitySettings.SetQualityLevel((int)PlayerPrefs.GetFloat("GraphicQuality"));*/
+        if (!PlayerPrefs.HasKey("GraphicQuality"))
+        {
+            var graphicsQualitySlider = UIManager.instance.graphicsQualitySlider;
+            QualitySettings.SetQualityLevel((int)graphicsQualitySlider.GetComponent<Slider>().value);
+        }
+        currentQualityLevel = QualitySettings.GetQualityLevel();
+        StartCalibration();
     }
+
+    private void StartCalibration()
+    {
+        isCalibrating = true;
+        timeElapsed = 0;
+        fpsAccumulator = 0;
+        frameCount = 0;
+    }
+
+    private void Update()
+    {
+        if (!isCalibrating) return;
+
+        // Accumulate FPS data
+        fpsAccumulator += (1f / Time.unscaledDeltaTime);
+        frameCount++;
+        timeElapsed += Time.unscaledDeltaTime;
+
+        if (timeElapsed >= calibrationDuration)
+        {
+            float averageFPS = fpsAccumulator / frameCount;
+            EvaluatePerformance(averageFPS);
+        }
+    }
+
+    private void EvaluatePerformance(float averageFPS)
+    {
+        if (averageFPS >= targetFrameRate)
+        {
+            //Debug.Log($"Target FPS {targetFrameRate} reached. Average FPS: {averageFPS}");
+            isCalibrating = false;
+        }
+        else if (currentQualityLevel > 0)
+        {
+            currentQualityLevel--;
+            QualitySettings.SetQualityLevel(currentQualityLevel, true);
+            //Debug.Log($"Lowering quality to level {currentQualityLevel}. Recalibrating...");
+            StartCalibration();
+        }
+        else if (averageFPS < targetFrameRate && targetFrameRate == 60)
+        {
+            //Debug.Log($"60 FPS unreachable. Adjusting target to 30 FPS...");
+            targetFrameRate = secondaryTargetFrameRate;
+            StartCalibration();
+        }
+        else
+        {
+            //Debug.Log($"Minimum quality level reached. Average FPS: {averageFPS}");
+            isCalibrating = false;
+        }
+    }
+
     void LoadSelectedBike()
     {
         var selectedBikeID = BikeSelectionScreen.currentBikeID;
@@ -65,8 +137,9 @@ public class GameManager : MonoBehaviour
 
         var selectedBodyColor = MainMenuManager.instance.paintPartsScreen.bodyColor;
         var selectedRimsColor = MainMenuManager.instance.paintPartsScreen.rimsColor;
-        spawnPosition = bikeSpawner.SortInitialSpawnPoint();
-        spawnRotation = Quaternion.Euler(0, -90, 0);
+        var spawnPoint = bikeSpawner.SortInitialSpawnPoint();
+        spawnPosition = spawnPoint.Key;
+        spawnRotation = Quaternion.Euler(0, spawnPoint.Value, 0);
         var bikeInstance = Instantiate(bikePhysicsController, spawnPosition, spawnRotation);
         bikePhysicsController = bikeInstance;
         bikePhysicsController.bikeReferences.cameraController.gameObject.SetActive(true);
@@ -86,6 +159,13 @@ public class GameManager : MonoBehaviour
         var instance = Instantiate(bikerController, spawnPosition, spawnRotation, parent);
     }
 
+    public void SetGraphicQuality(float qualityIndex)
+    {
+        if (qualityIndex < 3)
+            QualitySettings.SetQualityLevel((int)qualityIndex, false);
+        else
+            QualitySettings.SetQualityLevel((int)qualityIndex, true);
+    }
 
     void UpdateSpawnTransform()
     {
