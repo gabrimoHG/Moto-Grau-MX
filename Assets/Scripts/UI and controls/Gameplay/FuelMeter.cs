@@ -19,12 +19,17 @@ public class FuelMeter : Gauge
         bikePhysicsController.events.onBikeRefueled += StopFading;
         bikePhysicsController.events.onBikeOutOfFuel += SetFading;
     }
-    private void SetFading() =>
+    private void SetFading()
+    {
         fadeLoop = StartCoroutine(FadeLoop());
+        bikePhysicsController.events.onBikeOutOfFuel -= SetFading;
+    }
     void UpdateSubscription(ArcadeBikeControllerPro bikePhysicsController)
     {
         this.bikePhysicsController = bikePhysicsController;
         bikePhysicsController.events.onFuelUpdate += UpdateImageInfo;
+        bikePhysicsController.events.onBikeRefueled += StopFading;
+        bikePhysicsController.events.onBikeOutOfFuel += SetFading;
         if (bikePhysicsController.fuelAmount > 0)
             StopFading();
     }
@@ -48,13 +53,13 @@ public class FuelMeter : Gauge
     {
         if (fadeLoop != null)
         {
-            StopCoroutine(fadeLoop);
-            StopCoroutine(Fade(1 ,1));
+            StopAllCoroutines();
             fadeLoop = null;
             Color spriteColor = imageContent.color;
             spriteColor.a = 1f;
             imageContent.color = spriteColor;
             UpdateImageInfo(bikePhysicsController.fuelAmount);
+            bikePhysicsController.events.onBikeOutOfFuel += SetFading;
             //Debug.Log("Stop fade loop!");
         }
     }

@@ -19,7 +19,7 @@ public class GraphicsQualitySlider : MonoBehaviour
     private void Start()
     {
         if (PlayerPrefs.HasKey("GraphicQuality"))
-            slider.value = (int)PlayerPrefs.GetFloat("GraphicQuality");
+            slider.value = PlayerPrefs.GetInt("GraphicQuality");
     }
     void OnEnable()
     {

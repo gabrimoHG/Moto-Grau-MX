@@ -52,7 +52,7 @@ public class Gauge : MonoBehaviour
 
             yield return new WaitForSeconds(delayBetweenFades);
 
-            Debug.Log("Fade loop!");
+            //Debug.Log("Fade loop!");
         }
 
     }

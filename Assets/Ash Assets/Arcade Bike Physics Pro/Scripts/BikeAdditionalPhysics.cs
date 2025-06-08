@@ -164,7 +164,7 @@ public class BikeAdditionalPhysics : MonoBehaviour
         characterRagdollInstance = Instantiate(riderData.ragdollPrefab, bikeTransform.position, bikeTransform.rotation);
 
         // Match the ragdoll bones' rotations to the character's bones
-        /*Animator ragdollAnimator = characterRagdollInstance.GetComponent<Animator>();
+        Animator ragdollAnimator = characterRagdollInstance.GetComponent<Animator>();
         foreach (HumanBodyBones bone in (HumanBodyBones[])System.Enum.GetValues(typeof(HumanBodyBones)))
         {
             if (bone == HumanBodyBones.LastBone) continue;
@@ -176,7 +176,7 @@ public class BikeAdditionalPhysics : MonoBehaviour
             {
                 ragdollBoneTransform.rotation = characterBoneTransform.rotation;
             }
-        }*/
+        }
 
         // Match velocities and forces
         Rigidbody[] bikeRagdollRigidbodies = dummyBikeInstance.GetComponentsInChildren<Rigidbody>();
@@ -228,6 +228,8 @@ public class BikeAdditionalPhysics : MonoBehaviour
         if(isDoingWheelie || isDoingStoppie)
             bikeController.DecreaseCondition((int)damage);
         //Debug.Log("Decrease damage call 2");
+        bikeController.logicalGear = 0;
+        bikeController.mechanicalGear = 1;
         gameObject.SetActive(false);
         collisionCooldown = false;
         onDislodged();

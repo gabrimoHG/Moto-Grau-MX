@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 public class OnFallPopup : MonoBehaviour
 {
+    GameManager gameManager;
     Image background, resetBikeIcon, mainMenuIcon, adIcon;
     TextMeshProUGUI titleTMPro, resetBikeTitle, mainMenuTitle;
     Button resetBikeButton, mainMenuButton;
@@ -14,6 +15,7 @@ public class OnFallPopup : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
+        gameManager= FindObjectOfType<GameManager>();
         background  = GetComponent<Image>();
         titleTMPro = transform.GetChild(0).GetComponent<TextMeshProUGUI>();
         resetBikeButton = transform.GetChild(1).GetComponent<Button>();
@@ -23,7 +25,8 @@ public class OnFallPopup : MonoBehaviour
         mainMenuButton = transform.GetChild(2).GetComponent<Button>();
         mainMenuTitle = mainMenuButton.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
         mainMenuIcon = mainMenuButton.transform.GetChild(1).GetComponent<Image>();
-        resetBikeButton.onClick.AddListener(FindObjectOfType<GameManager>().ResetBike);
+        resetBikeButton.onClick.AddListener(gameManager.ResetBike);
+        resetBikeButton.onClick.AddListener(gameManager.interstitialAdController.ShowAd);
         resetBikeButton.onClick.AddListener(UIManager.instance.EnableBaseUI);
         resetBikeButton.onClick.AddListener(FadeOutAndResetGraphics);
     }
@@ -55,8 +58,30 @@ public class OnFallPopup : MonoBehaviour
             AlphaToTargetLinearly(mainMenuIcon, 1, .25f));
         StartCoroutine(InterpolationUtilities.
             AlphaToTargetLinearly(mainMenuTitle, 1, .25f, EnableButtons));
-        Debug.LogWarning("Check if there's Ad to be shown and fade in the little Ad icon here!");
+
+        StartCoroutine(EnableAdIconOnAdReady());
+
         //StartCoroutine(InterpolationUtilities.AlphaToTargetLinearly(adIcon, 1, .25f,));
+    }
+
+    IEnumerator EnableAdIconOnAdReady()
+    {
+        while (true)
+        {
+            if (gameManager.interstitialAdController.isAvailable &&
+                !gameManager.interstitialAdController.isAdClicked)
+            {
+                StartCoroutine(InterpolationUtilities.
+                    AlphaToTargetLinearly(adIcon, 1, .25f));
+            }
+            else
+            {
+                var color = new Color(adIcon.color.r,
+                    adIcon.color.g, adIcon.color.b, 0);
+                adIcon.color = color;
+            }
+            yield return new WaitForSeconds(.25f);
+        }
     }
 
     void EnableButtons()
@@ -91,6 +116,7 @@ public class OnFallPopup : MonoBehaviour
 
         if (disabilityCounter == 6)
         {
+            StopCoroutine(EnableAdIconOnAdReady());
             resetBikeButton.enabled = false;
             mainMenuButton.enabled = false;
             disabilityCounter = 0;

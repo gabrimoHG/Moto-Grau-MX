@@ -157,7 +157,7 @@ public class BikeData : GameData
         public float wheelieAnimationSpeed;
 
         [Tooltip("Array of speeds for each gear. The bike will shift gears based on its current speed in kmph.")]
-        public int[] gearSpeeds;
+        public float[] gearSpeeds;
 
         [Tooltip("The current gear of the bike.")]
         public int mechanicalGear;

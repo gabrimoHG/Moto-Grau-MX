@@ -130,6 +130,8 @@ public class TailSection : MonoBehaviour
                         pieceGameobject.transform.rotation);
                     instance.name = pieceGameobject.name;
                     instance.AddComponent<Rigidbody>();
+                    if(instance.GetComponent<BoxCollider>()!=null)
+                        instance.GetComponent<BoxCollider>().enabled = true;
                     randomForce = Random.Range(12, 15);
                     force = Vector3.back * randomForce;
                     instance.GetComponent<Rigidbody>().AddForce(force, ForceMode.Impulse);

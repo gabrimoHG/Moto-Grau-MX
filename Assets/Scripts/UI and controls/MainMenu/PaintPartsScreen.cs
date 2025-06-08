@@ -31,6 +31,15 @@ public class PaintPartsScreen : MainMenuScreen
             currentBike.GetComponent<BikeComponent>().SetBodyColor);
         
     }*/
+    public void UnsubscribeBikeRims()
+    {
+        var currentBike = previousScreen.GetComponent<BikeSelectionScreen>().currentBike;
+        if (colorPicker != null)
+        {
+            colorPicker.onColorChange.RemoveListener(
+                currentBike.GetComponent<BikeComponent>().SetRimsColor);
+        }
+    }
     public void SetData(int paintIndex)
     {
         this.paintIndex = paintIndex;
@@ -74,6 +83,7 @@ public class PaintPartsScreen : MainMenuScreen
             currentBike.GetComponent<BikeComponent>().SetRimsColor);
         colorPicker.onColorChange.AddListener(
             currentBike.GetComponent<BikeComponent>().SetBodyColor);
+        paintIndex = 0;
     }
 
 }

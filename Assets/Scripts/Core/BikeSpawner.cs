@@ -7,6 +7,10 @@ using System.Data;
 using UnityEditor;
 using UnityEngine;
 
+/*>>>>>>>>>>>>>>>>>>>>>>SUMMARY
+ * Class responsible by the bike spawns and bike changes.
+ * Each method has its own summary.
+*/
 public class BikeSpawner : MonoBehaviour
 {
     GameManager gameManager;
@@ -18,22 +22,7 @@ public class BikeSpawner : MonoBehaviour
     //[SerializeField]List<Vector3> initialSpawnPoints;
     List<KeyValuePair<Vector3, float>> initialSpawnPoints;
      
-    public KeyValuePair<Vector3, float> SortInitialSpawnPoint()
-    {
-        if (initialSpawnPoints == null)
-        {
-            var firstPoint = new KeyValuePair<Vector3, float>(new Vector3(635.52f, -6.37f, 648.58f), 180);
-            var secondPoint = new KeyValuePair<Vector3, float>(new Vector3(602.5f, -6.245f, 581.46f), 270);
-            var thirdPoint = new KeyValuePair<Vector3, float>(new Vector3(467.3f, -6.18f, 508.5f), 150);
-            var fourthPoint = new KeyValuePair<Vector3, float>(new Vector3(456.9f, -6.18f, 352.65f), 45);
-            initialSpawnPoints = new List<KeyValuePair<Vector3, float>>();
-            initialSpawnPoints.Add(firstPoint);
-            initialSpawnPoints.Add(secondPoint);
-            initialSpawnPoints.Add(thirdPoint);
-            initialSpawnPoints.Add(fourthPoint);
-        }
-        return GeneralUtilities.GetRandomItem(initialSpawnPoints);
-    }
+    
     public GameObject lastBike { get; private set; }
     Transform lastSpot;
     public GameObject lastUsedDummyBike { get; private set; }
@@ -63,7 +52,6 @@ public class BikeSpawner : MonoBehaviour
         //gameManager.onInitialDataSet += InitialDataSet;
         InitialDataSet();
     }
-
     void InitialDataSet()
     {
         SetAvailableBikes();
@@ -71,9 +59,43 @@ public class BikeSpawner : MonoBehaviour
         StartCoroutine(PlayerXSpawnedBikesDistance());
     }
 
+    /*>>>>>>>>>>>>>>>>>>>>>>SUMMARY
+     * Spawn points set, I know it's hard coded. It was built like
+     * that because the game is on alpha and the map is small. A good
+     * solution that comes to mind is to transfer these coordinates to
+     * empty objects in the scene under a container object, adding a
+     * reference to this container through a SerializedField. The coordinates
+     * are composed of a position and a rotation amount in the Y axis.
+     */
+    public KeyValuePair<Vector3, float> SortInitialSpawnPoint()
+    {
+        if (initialSpawnPoints == null)
+        {
+            var firstPoint = new KeyValuePair<Vector3, float>(new Vector3(635.52f, -6.37f, 648.58f), 180);
+            var secondPoint = new KeyValuePair<Vector3, float>(new Vector3(602.5f, -6.245f, 581.46f), 270);
+            var thirdPoint = new KeyValuePair<Vector3, float>(new Vector3(467.3f, -6.18f, 508.5f), 150);
+            var fourthPoint = new KeyValuePair<Vector3, float>(new Vector3(456.9f, -6.18f, 352.65f), 45);
+            initialSpawnPoints = new List<KeyValuePair<Vector3, float>>();
+            initialSpawnPoints.Add(firstPoint);
+            initialSpawnPoints.Add(secondPoint);
+            initialSpawnPoints.Add(thirdPoint);
+            initialSpawnPoints.Add(fourthPoint);
+        }
+        return GeneralUtilities.GetRandomItem(initialSpawnPoints);
+    }
+
+    /*>>>>>>>>>>>>>>>>>>>>>>SUMMARY
+     * Method responsible to handle the player's bike change,
+     * it stores all pertinent data from the current bike, 
+     * destroys the current bike, the new bike dummy (empty model,
+     * without rider and physics) and instantiate the new bike
+     * and the now previous bike dummy. The original bike data is
+     * stored in case the player returns to it for data
+     * consistency (gasoline, condition etc). In the end, it triggers
+     * the spawn system again.
+     */
     void EnterBike()
     {
-        //StopCoroutine(PlayerXSpawnedBikesDistance());
         StopAllCoroutines();
         bikeInteractionPad.gameObject.SetActive(false);
 
@@ -89,7 +111,6 @@ public class BikeSpawner : MonoBehaviour
         var fuelAmount = controller.fuelAmount;
         var isNew = controller.isNew;
         var isTailActive = controller.GetComponent<BikeComponent>().IsTailActive();
-        //Debug.Log(bikeController + " isNew: " + isNew);
         Destroy(controller.skidmarkController.gameObject);
         Destroy(controller.gameObject);
 
@@ -102,21 +123,16 @@ public class BikeSpawner : MonoBehaviour
             lastUsedDummyBike.GetComponent<DummyBike>().isNew = isNew;
             lastUsedDummyBike.GetComponent<BikeComponent>().SetIsTailActive(isTailActive);
         }
-        /*else
-            lastDummyBike = null;*/
         instance.GetComponent<BikeComponent>().SetBodyColor(bodyColor);
         instance.GetComponent<BikeComponent>().SetRimsColor(rimColor);
         instance.GetComponent<DummyBike>().isShowcase = true;
         instance.GetComponent<DummyBike>().isNew = isNew;
-        //Debug.Log(instance + " isNew: " + isNew);
         instance.GetComponent<Rigidbody>().isKinematic = true;
         instance.GetComponent<DummyBike>().enabled = true;
         lastBike = instance;
 
-        //lastSpot = closestBike.transform.parent;
         bikeData = closestBike.GetComponent<DummyBike>().BikeData;
         isNew = closestBike.GetComponent<DummyBike>().isNew;
-        //Debug.Log(closestBike + " isNew: " + isNew);
         position = closestBike.transform.position;
         rotation = closestBike.transform.rotation;
         bodyColor = closestBike.GetComponent<BikeComponent>().GetBodyColor();
@@ -149,6 +165,10 @@ public class BikeSpawner : MonoBehaviour
         StartCoroutine(PlayerXSpawnedBikesDistance());
 
     }
+    /*>>>>>>>>>>>>>>>>>>>>>>SUMMARY
+     * This one simply updates the spawnable bikes disregarding
+     * the current one used by the player.
+     */
     void SetAvailableBikes()
     {
         spawnableBikes = new List<BikeData>(bikesController.GetBikesData());
@@ -160,25 +180,26 @@ public class BikeSpawner : MonoBehaviour
         {
             if (spawnableBikes[i].id == bikePhysicsController.id)
             {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-                //UIManager.instance.debugConsole.AddMessage(
-                //    "Bike " + spawnableBikes[i].title + " removed!");
-#endif
                 spawnableBikes.RemoveAt(i);
                 break;
             }
         }
     }
 
+    /*>>>>>>>>>>>>>>>>>>>>>>SUMMARY
+     * This implementation spawns the available bikes by the
+     * spawn points with random colors. It also removes the closest
+     * point for the player form the list, so that the user don't
+     * stumble across new bikes so easily considering his starting point.
+     */
     void SpawnCommonBikes()
     {
         var tempSpots = new List<Transform>(commonSpots);
-        var bikePhysicsController = gameManager.GetCurrentBikePhysicsController();//Revisado!
+        var bikePhysicsController = gameManager.GetCurrentBikePhysicsController();
 
         RemoveClosestSpot(bikePhysicsController.transform, tempSpots);
         spawnedBikes = new List<Transform>();
-        /*if (lastSpot!=null)
-            tempSpots.Remove(lastSpot);*/
+
         if (lastBike != null)
         {
             spawnedBikes.Add(lastBike.transform);
@@ -197,8 +218,6 @@ public class BikeSpawner : MonoBehaviour
                 spawnedBikes.Add(chosenSpot.GetChild(0));
                 continue;
             }
-            //if (Vector3.Distance(bikeController.transform.position, chosenSpot.position) < 10)
-                //continue;
             var instance = Instantiate(bike.dummyPrefab, chosenSpot.position,
                 chosenSpot.localRotation, chosenSpot);
             var bodyColor = GeneralUtilities.GetRandomUnityColor();
@@ -208,14 +227,17 @@ public class BikeSpawner : MonoBehaviour
             instance.GetComponent<DummyBike>().isShowcase = true;
             instance.GetComponent<Rigidbody>().isKinematic = true;
             spawnedBikes.Add(instance.transform);
+
 #if DEVELOPMENT_BUILD
             //UIManager.instance.debugConsole.AddMessage(
             //        "Bike " + bike.title + " spawned!");
 #endif
-            //Debug.Log("New instantiated bike added!");
         }
-        //lastSpot = null;
     }
+
+    /*>>>>>>>>>>>>>>>>>>>>>>SUMMARY
+     * This logic deals with the removal informed above
+     */
     void RemoveClosestSpot(Transform controllerTransform,
         List<Transform> spawnSpots)
     {
@@ -228,9 +250,18 @@ public class BikeSpawner : MonoBehaviour
             }
         }
     }
+
+    /*>>>>>>>>>>>>>>>>>>>>>>SUMMARY
+     * This coroutine defines what bike is the closest
+     * one from the player. It also controls if the pad
+     * button (a clickable quad in the game world that
+     * triggers the bike change) is active or not. Finally,
+     * it destroys the player's old bike if he gets above
+     * a certain distance from it.
+     */
     private IEnumerator PlayerXSpawnedBikesDistance()
     {
-        var playerBikeTransform = gameManager.GetCurrentBikePhysicsController().transform;//Revisado!
+        var playerBikeTransform = gameManager.GetCurrentBikePhysicsController().transform;
 
         while (true)
         {
@@ -250,8 +281,7 @@ public class BikeSpawner : MonoBehaviour
                     closestBike = spawnedBikes[i].gameObject;
                 }
             }
-            /*bikeInteractionPad.transform.position = new Vector3(closestBike.transform.position.x,
-                closestBike.transform.position.y +.5f, closestBike.transform.position.z);*/
+
             if(Vector3.Distance(playerBikeTransform.position, closestBike.transform.position)<10)
                 bikeInteractionPad.gameObject.SetActive(true);
             else

@@ -7,4 +7,5 @@ public class GameData : ScriptableObject
     [Header("Header")]
     public string title;
     public int id;
+    public bool isLocked;
 }

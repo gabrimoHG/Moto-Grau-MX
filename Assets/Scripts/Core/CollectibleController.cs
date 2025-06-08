@@ -18,7 +18,13 @@ public class CollectibleController : MonoBehaviour
         gameManager = FindObjectOfType<GameManager>();
         SetInternalData();
     }
-    void SetInternalData()
+    protected virtual void Start()
+    {
+        gameManager.onPlayerBikeChange += UpdateSubscriptionsOnBikeChange;//Revisado!
+        StartCoroutine(ZonesAvailability());
+        UpdateSubscriptionsOnBikeChange(gameManager.GetCurrentBikePhysicsController());//Revisado!
+    }
+    protected virtual void SetInternalData()
     {
         collectibles = new List<CollectibleItem>();
         zones = new List<CollectibleZone>();
@@ -33,12 +39,7 @@ public class CollectibleController : MonoBehaviour
             }
         }
     }
-    protected virtual void Start()
-    {
-        gameManager.onPlayerBikeChange += UpdateSubscriptionsOnBikeChange;//Revisado!
-        StartCoroutine(ZonesAvailability());
-        UpdateSubscriptionsOnBikeChange(gameManager.GetCurrentBikePhysicsController());//Revisado!
-    }
+    
 
     private void OnTriggerEnter(Collider other)
     {
@@ -90,6 +91,8 @@ public class CollectibleController : MonoBehaviour
         StartCoroutine(DisableTemporarily(collectedItem));
     IEnumerator DisableTemporarily(CollectibleItem item)
     {
+        if (item is BikeKey)
+            yield return null;
         item.gameObject.SetActive(false);
         yield return new WaitForSeconds(respawnCooldown);
         item.gameObject.SetActive(true);

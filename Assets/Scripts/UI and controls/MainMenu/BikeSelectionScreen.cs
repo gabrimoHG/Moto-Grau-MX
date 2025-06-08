@@ -30,6 +30,7 @@ public class BikeSelectionScreen : MainMenuScreen
     Transform bikeNameTransform;
     [SerializeField]MapSelectionScreen mapSelectionScreen;
     [SerializeField]RiderSelectionScreen riderSelectionScreen;
+    [SerializeField]PaintPartsScreen paintPartsScreen;
     protected override void Awake()
     {
         base.Awake();
@@ -38,6 +39,12 @@ public class BikeSelectionScreen : MainMenuScreen
         //currentBike = bikes[0];
         bikeNameTransform = transform.GetChild(2).GetChild(1);
         UpdateBikeData();
+    }
+    private void OnDisable()
+    {
+        var dummyBike = currentBike.GetComponent<DummyBike>();
+        if (dummyBike.BikeData.isLocked)
+            PreviousBike();
     }
     public void RetargetComponentsList()
     {
@@ -63,6 +70,7 @@ public class BikeSelectionScreen : MainMenuScreen
         //MainMenuManager.instance.returnButton.FadeOutAndDeactivate();
         mapSelectionScreen.FadeOutCurrentMapQuadAlpha();
         riderSelectionScreen.FadeOutCurrentRider();
+        paintPartsScreen.UnsubscribeBikeRims();
         //fade out character model
 
     }
@@ -95,10 +103,14 @@ public class BikeSelectionScreen : MainMenuScreen
         var bikeName = currentBike.GetComponent<DummyBike>().BikeData.title;
         bikeNameTransform.GetComponent<TextMeshProUGUI>().text = bikeName;
         currentBikeID = currentBike.GetComponent<DummyBike>().BikeData.id;
+        currentBike.GetComponent<DummyBike>().SetRevEngine();
     }
 
     public void FadeInCurrentBike()
     {
+        var dummyBike = currentBike.GetComponent<DummyBike>();
+        if (dummyBike.BikeData.isLocked)
+            return;
         var bikeParts = currentBike.GetComponent<BikeComponent>().models;
         var bikePartMaterial = bikeParts[0].GetComponent<MeshRenderer>().material;
         if (bikePartMaterial.color.a == 0)

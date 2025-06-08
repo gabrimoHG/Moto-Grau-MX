@@ -11,7 +11,7 @@ using System;
 public class UIManager : MonoBehaviour
 {
     public static UIManager instance { get; private set; }
-    GameManager gameManager;
+    public GameManager gameManager { get; private set; }
     public DirectionalHandlerController directionalController { private set; get; }
     public Transform baseContextualUI { private set; get; }
     public UiButton_ABP_Pro accelerationButton { private set; get; }
@@ -28,6 +28,7 @@ public class UIManager : MonoBehaviour
     public ResetBikeButton resetBikeButton { private set; get; }
     public DebugConsole debugConsole { private set; get; }
     public GraphicsQualitySlider graphicsQualitySlider { private set; get; }
+    public FPSLimitSlider fpsLimitSlider { private set; get; }
     Coroutine popupCoroutine;
     Transform panel;
 
@@ -62,6 +63,8 @@ public class UIManager : MonoBehaviour
             GetComponentInChildrenIncludingInactive<OnFallPopup>(transform.GetChild(0), 1);
         graphicsQualitySlider = panel.GetChild(2).GetChild(5).
             GetComponent<GraphicsQualitySlider>();
+        fpsLimitSlider = panel.GetChild(2).GetChild(6).
+            GetComponent<FPSLimitSlider>();
         loadingScreensController = MainMenuManager.instance.
             loadingScreensTransform.GetComponent<LoadingScreensController>();
         debugConsole = panel.GetChild(3).GetChild(1).GetComponent<DebugConsole>();
@@ -89,6 +92,7 @@ public class UIManager : MonoBehaviour
     {
         var image = panel.GetComponent<Image>();
         StartCoroutine(InterpolationUtilities.AlphaToTargetLinearly(image, 0, .75f));
+
     }
     public void EnableOnFallPopup()=>
         popupCoroutine= StartCoroutine(EnableOnFallPopupAfterDelay(2));
@@ -145,7 +149,8 @@ public class UIManager : MonoBehaviour
     {
         var operation = SceneManager.LoadSceneAsync(0);
         loadingScreensController.gameObject.SetActive(true);
-        
+
+        gameManager.OnReturnToMainMenu();
         
         while (!operation.isDone)
         {

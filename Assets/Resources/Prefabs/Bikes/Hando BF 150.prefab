@@ -342,7 +342,7 @@ MonoBehaviour:
     brokenOrNoGasSpeedLimit: 5
     fuelConsumptionRate: 0.9
     extraConsumptionFloor: 0
-    frontalWeight: 9
+    frontalWeight: 7
     scrapingDownForce: 1
     horsepower: 12
     wheelieAnimationSpeed: 0.35
@@ -476,8 +476,8 @@ MonoBehaviour:
         inWeight: 0
         outWeight: 0.25135058
       - serializedVersion: 3
-        time: 0.21309951
-        value: 0.49546
+        time: 0.2978163
+        value: 0.49310634
         inSlope: -0.73302716
         outSlope: -0.73302716
         tangentMode: 0
@@ -509,8 +509,8 @@ MonoBehaviour:
         inWeight: 0
         outWeight: 0.577496
       - serializedVersion: 3
-        time: 0.20044367
-        value: 0.79930735
+        time: 0.19015925
+        value: 0.9569764
         inSlope: -3.2645824
         outSlope: -3.2645824
         tangentMode: 0
@@ -545,7 +545,12 @@ MonoBehaviour:
     maxPitch: 1
     SkidSound: {fileID: 6944772750743538981}
     scrapingSound: {fileID: 5248725412595698746}
-  gearSpeeds: 04000000090000000e0000001300000019000000
+  gearSpeeds:
+  - 2.5
+  - 9
+  - 14
+  - 19
+  - 25
   mechanicalGear: 1
   logicalGear: 0
   projectedForwardOffsetAngle: 0
@@ -3185,7 +3190,7 @@ MonoBehaviour:
   perspectiveChangeDuration: 0.5
   defaultFPSYOffset: 10
   onWheelieFPSYOffset: -30
-  isFirstPersonCamDynamic: 0
+  isFirstPersonCamDynamic: 1
 --- !u!1 &5492809598896467663
 GameObject:
   m_ObjectHideFlags: 0

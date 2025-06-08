@@ -1642,7 +1642,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 0.13487671, y: 0.031716462, z: 0.066440694}
   m_Center: {x: 0.0013844037, y: 0.0014775394, z: -0.0018091797}
@@ -2459,7 +2459,7 @@ MonoBehaviour:
   perspectiveChangeDuration: 0.5
   defaultFPSYOffset: 10
   onWheelieFPSYOffset: -20
-  isFirstPersonCamDynamic: 0
+  isFirstPersonCamDynamic: 1
 --- !u!1 &4544881654617762337
 GameObject:
   m_ObjectHideFlags: 0
@@ -3694,7 +3694,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 0.1349139, y: 0.031716462, z: 0.066440694}
   m_Center: {x: -0.0013705158, y: 0.0014775394, z: -0.0018103718}
@@ -4734,7 +4734,7 @@ MonoBehaviour:
     burnoutRotationSpeed: 60
     burnoutSmoothness: 1
     wheelieAngle: 100
-    wheelieAngleLimit: 60
+    wheelieAngleLimit: 65
     wheelieMinSpeed: 4
     wheelieMaxSpeed: 20
     minWheelieDropSpeed: 75
@@ -4742,7 +4742,7 @@ MonoBehaviour:
     brokenOrNoGasSpeedLimit: 5
     fuelConsumptionRate: 0.75
     extraConsumptionFloor: 0
-    frontalWeight: 10
+    frontalWeight: 8
     scrapingDownForce: 1
     horsepower: 9
     wheelieAnimationSpeed: 0.4
@@ -4811,7 +4811,7 @@ MonoBehaviour:
       m_Curve:
       - serializedVersion: 3
         time: 0.001694458
-        value: 0.46164912
+        value: 0.40098017
         inSlope: -0.03295452
         outSlope: -0.03295452
         tangentMode: 0
@@ -4885,8 +4885,8 @@ MonoBehaviour:
         inWeight: 0
         outWeight: 0.24689032
       - serializedVersion: 3
-        time: 0.3094976
-        value: 0.38423395
+        time: 0.37593645
+        value: 0.3508383
         inSlope: -0.67601436
         outSlope: -0.67601436
         tangentMode: 0
@@ -4918,8 +4918,8 @@ MonoBehaviour:
         inWeight: 0
         outWeight: 0.577496
       - serializedVersion: 3
-        time: 0.31157187
-        value: 0.8182172
+        time: 0.29658774
+        value: 0.9252729
         inSlope: -3.0512557
         outSlope: -3.0512557
         tangentMode: 0
@@ -4954,7 +4954,11 @@ MonoBehaviour:
     maxPitch: 1.25
     SkidSound: {fileID: 8401577659898945920}
     scrapingSound: {fileID: 5453804930994461574}
-  gearSpeeds: 03000000070000000c00000011000000
+  gearSpeeds:
+  - 2
+  - 7
+  - 12
+  - 17
   mechanicalGear: 1
   logicalGear: 0
   projectedForwardOffsetAngle: 0

@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Linq.Expressions;
 using ArcadeBP_Pro;
+using GoogleMobileAds.Api;
 public class MainMenuManager : MonoBehaviour
 {
 
@@ -31,6 +32,7 @@ public class MainMenuManager : MonoBehaviour
     public FreeRoamScreen freeRoamScreen { get; private set; }
     public ReturnButton returnButton { get; private set; }
     public WarningPopup warningPopup { get; private set; }
+    public bool isKeyCollected { get; private set; }
     private void Awake()
     {
         SetSingletonInstance();
@@ -51,6 +53,36 @@ public class MainMenuManager : MonoBehaviour
         riderSelectionScreen = freeRoamTransform.GetChild(4).GetComponent<RiderSelectionScreen>();
         bikeSelectionScreen.SetInitialBike();
         riderSelectionScreen.SetInitialRider();
+    }
+    private void Start()
+    {
+        AdmobInitialization();
+        SetSessionData();
+    }
+
+    void AdmobInitialization()
+    {
+        RequestConfiguration requestConfiguration = new RequestConfiguration
+        {
+            TestDeviceIds = new List<string> {
+                "f4808a71-c948-4746-9665-dff976aedd3e",
+                "e6f2cf80-4aa6-461f-b61c-cd01d0ee9de3"}
+        };
+
+        MobileAds.SetRequestConfiguration(requestConfiguration);
+
+        MobileAds.Initialize(initStatus => { });
+    }
+
+    void SetSessionData()
+    {
+        var currentDate = System.DateTime.Now.ToString("yyyyMMdd");
+        PlayerPrefs.SetString("LastPlayedDate", currentDate);
+        var isKeyCollectedInt = PlayerPrefs.GetInt("IsNextBikeKeyCollected");
+        if (isKeyCollectedInt == 0)
+            isKeyCollected = false;
+        else
+            isKeyCollected = true;
     }
     void SetSingletonInstance()
     {

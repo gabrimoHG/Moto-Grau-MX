@@ -91,7 +91,8 @@ public class FlexibleColorPicker : MonoBehaviour {
     private bool materialsSeperated;
 
     //public settings
-    [Tooltip("Color set to the color picker on Start(). If you wish to set a starting color via script please used the standard color parameter of the FCP in stead.")]
+    [Tooltip("Color set to the color picker on Start(). If you wish to set" +
+        " a starting color via script please used the standard color parameter of the FCP instead.")]
     [SerializeField]
     private Color startingColor = Color.white;
     [Tooltip("Use static mode: picker images are replaced by static images in stead of adaptive Unity shaders.")]
@@ -237,6 +238,13 @@ public class FlexibleColorPicker : MonoBehaviour {
     }
 
     private void OnEnable() {
+        var paintPartsScreen = GetComponentInParent<PaintPartsScreen>();
+        var paintIndex = paintPartsScreen.paintIndex;
+        if (paintIndex == 0)
+            startingColor = paintPartsScreen.bodyColor;
+        else
+            startingColor = paintPartsScreen.rimsColor;
+
         if(this.bufferedColor == null)
             this.bufferedColor = new BufferedColor(startingColor);
 

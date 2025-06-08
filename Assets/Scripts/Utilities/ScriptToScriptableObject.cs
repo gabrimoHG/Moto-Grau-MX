@@ -124,7 +124,7 @@ public class ScriptToScriptableObject : MonoBehaviour
         bikeData.additionalSettings.wheelieAnimationSpeed =
             bikeController.bikeSettings.wheelieAnimationSpeed;
         bikeData.additionalSettings.gearSpeeds =
-            bikeController.gearSpeeds;
+           bikeController.gearSpeeds;
         bikeData.additionalSettings.mechanicalGear =
             bikeController.mechanicalGear;
         bikeData.additionalSettings.logicalGear =

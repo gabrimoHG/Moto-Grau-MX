@@ -6,24 +6,28 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+/*>>>>>>>>>>>>>>>>>>>>>Summary
+ *Class responsible to handle a button presence in the 3D world. 
+ *The button is represented by a Quad mesh with a disabled box
+ *collider component, it becomes visible and interactable when
+ *the following conditions are met: The player gets closer from
+ *a interaction point (in this case, an empty bike) The player
+ *faces the interaction point within a certain radius threshold
+ *
+ */
 public class BikeInteractionPad : MonoBehaviour
 {
+    GameManager gameManager;
     BikeSpawner bikeSpawner;
     LayerMask worldUILayer = 1 << 9;
-    Image directionalHandlerImage;
     Camera mainCamera;
-    GraphicRaycaster raycaster;
     public event Action onClicked = delegate { };
-    bool isActivated;
+    bool isActivated, isAdEligible;
     private void Awake()
     {
         bikeSpawner = transform.parent.GetComponent<BikeSpawner>();
+        gameManager = FindObjectOfType<GameManager>();
         mainCamera = Camera.main;
-    }
-    private void Start()
-    {
-        directionalHandlerImage = UIManager.instance.directionalController.GetComponent<Image>();
-        raycaster = UIManager.instance.GetComponent<GraphicRaycaster>();
     }
     private void OnEnable()
     {
@@ -42,11 +46,10 @@ public class BikeInteractionPad : MonoBehaviour
     IEnumerator EnableButtonVisibility()
     {
         var material = GetComponent<MeshRenderer>().material;
+        var adIconMaterial = transform.GetChild(0).GetComponent<MeshRenderer>().material;
         var camera = Camera.main;
         while (true)
         {
-            /*if (GameManager.instance == null)
-                yield return new WaitForSeconds(.1f);*/
             var cameraPosition = camera.transform.position;
             var cameraForward = camera.transform.forward;
 
@@ -59,19 +62,47 @@ public class BikeInteractionPad : MonoBehaviour
             // Calculate the angle between the player's forward direction and the button
             float angleToButton = Vector3.Angle(cameraForward, directionToButton);
 
+            if (gameManager.rewardedInterstitialAdController == null)
+            {
+                yield return null;
+            }
+            var isAdAvailable = gameManager.rewardedInterstitialAdController.isAvailable;
+            var isAdClicked = gameManager.rewardedInterstitialAdController.isAdClicked;
+            isAdEligible = (isAdAvailable && !isAdClicked);
+
             if (bikeSpawner.closestDistance <= 5 && angleToButton <= 15)
             {
                 if (material.color.a < 1)
+                {
                     StartCoroutine(InterpolationUtilities.
                         AlphaToTargetLinearly(material, 1, .5f, EnableCollider));
+                }
+                if (isAdEligible)
+                {
+                    if (adIconMaterial.color.a < 1) 
+                    {
+                        StartCoroutine(InterpolationUtilities.
+                            AlphaToTargetLinearly(adIconMaterial, 1, .5f));
+                    }
+                    
+                }
             }
             else
             {
                 if (material.color.a > 0)
+                {
                     StartCoroutine(InterpolationUtilities.
                         AlphaToTargetLinearly(material, 0, .25f, DisableCollider));
+                }
+                if (!isAdEligible)
+                {
+                    if (adIconMaterial.color.a > 0) 
+                    {
+                        StartCoroutine(InterpolationUtilities.
+                            AlphaToTargetLinearly(adIconMaterial, 0, .25f));
+                    }
+                }
             }
-            //yield return null;
             yield return new WaitForSeconds(.1f);
         }
     }
@@ -85,7 +116,9 @@ public class BikeInteractionPad : MonoBehaviour
         while (true)
         {
             if (bikeSpawner.closestBike == null)
+            {
                 yield return new WaitForSeconds(.1f);
+            }
             var closestBikeTransform = bikeSpawner.closestBike.transform;
 
             // Calculate direction to player
@@ -96,7 +129,7 @@ public class BikeInteractionPad : MonoBehaviour
             Vector3 normalizedDirection = directionToPlayer.normalized;
 
             // Calculate target position dynamically around the bike
-            Vector3 targetPosition = closestBikeTransform.position + normalizedDirection;// * radius;
+            Vector3 targetPosition = closestBikeTransform.position + normalizedDirection;
             targetPosition.y = closestBikeTransform.position.y + 0.5f; // Keep quad slightly above the bike
 
             // Update the quad's position
@@ -111,26 +144,6 @@ public class BikeInteractionPad : MonoBehaviour
                 Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
                 transform.rotation = targetRotation;
             }
-
-            /*Vector3 directionToPlayer = camera.transform.position - closestBikeTransform.position;
-            directionToPlayer.y = 0;
-
-            Vector3 localDirection = closestBikeTransform.InverseTransformDirection(directionToPlayer);
-            float sideSign = Mathf.Sign(localDirection.x);
-            float frontBackSign = Mathf.Sign(localDirection.z);
-
-            Vector3 targetPosition = closestBikeTransform.position +
-                                     new Vector3(sideSign * .25f, 0.5f, frontBackSign*1);
-            transform.position = targetPosition;
-
-            Vector3 lookDirection = camera.transform.position - transform.position;
-            lookDirection.y = 0;
-
-            if (lookDirection != Vector3.zero)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
-                transform.rotation = targetRotation;
-            }*/
             yield return new WaitForSeconds(.1f);
         }
     }
@@ -145,9 +158,13 @@ public class BikeInteractionPad : MonoBehaviour
                 isActivated = true;
                 Vector2 touchPosition;
                 if (Input.touchCount > 0)
+                {
                     touchPosition = Input.GetTouch(0).position;
+                }
                 else
+                {
                     touchPosition = Input.mousePosition;
+                }
 
                 UIManager.instance.GetComponent<GraphicRaycaster>().enabled = false;
                 Ray ray = mainCamera.ScreenPointToRay(touchPosition);
@@ -155,7 +172,13 @@ public class BikeInteractionPad : MonoBehaviour
                 UIManager.instance.GetComponent<GraphicRaycaster>().enabled = true;
 
                 if (Physics.Raycast(ray, out hit, Mathf.Infinity, worldUILayer))
+                {
                     UIManager.instance.PanelFadeIn();
+                    if (isAdEligible)
+                    {
+                        gameManager.rewardedInterstitialAdController.ShowAd();
+                    }
+                }
             }
 
             yield return new WaitUntil(() => Input.touchCount == 0 && !Input.GetMouseButton(0));

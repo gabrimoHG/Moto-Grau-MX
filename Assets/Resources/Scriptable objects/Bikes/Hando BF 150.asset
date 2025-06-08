@@ -75,7 +75,12 @@ MonoBehaviour:
     frontalWeight: 9
     scrapingDownForce: 1
     wheelieAnimationSpeed: 0.35
-    gearSpeeds: 04000000090000000e0000001300000019000000
+    gearSpeeds:
+    - 2
+    - 7
+    - 14
+    - 19
+    - 25
     mechanicalGear: 1
     logicalGear: 0
   behaviorCurves:
@@ -206,8 +211,8 @@ MonoBehaviour:
         inWeight: 0
         outWeight: 0.25135058
       - serializedVersion: 3
-        time: 0.21309951
-        value: 0.49546
+        time: 0.2978163
+        value: 0.49310634
         inSlope: -0.73302716
         outSlope: -0.73302716
         tangentMode: 0

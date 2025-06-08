@@ -70,7 +70,7 @@ public class ConditionMeter : Gauge
             imageContent.color = spriteColor;
             UpdateImageInfo(bikePhysicsController.condition);
             bikePhysicsController.events.onBikeBroken += SetFading;
-            Debug.Log("Stop fading and color update!");
+            //Debug.Log("Stop fading and color update!");
             //Debug.Log("Stop fade loop!");
         }
     }

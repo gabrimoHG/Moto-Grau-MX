@@ -1,8 +1,8 @@
 using ArcadeBP_Pro;
+using GoogleMobileAds.Sample;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -47,6 +47,11 @@ public class GameManager : MonoBehaviour
     public CameraController cameraController { get; private set; }
     public BikesController bikesController { get; private set; }
     public RidersController ridersController { get; private set; }
+
+    public BannerViewController bannerViewController { private set; get; }
+    public InterstitialAdController interstitialAdController { private set; get; }
+    public RewardedAdController rewardedAdController { private set; get; }
+    public RewardedInterstitialAdController rewardedInterstitialAdController { private set; get; }
     public void SetCameraController(CameraController cameraController) =>
                 this.cameraController = cameraController;
     public event Action onBikeReset = delegate { };
@@ -58,6 +63,14 @@ public class GameManager : MonoBehaviour
         bikeSpawner = FindObjectOfType<BikeSpawner>();
         bikesController = GetComponent<BikesController>();
         ridersController = GetComponent<RidersController>();
+        bannerViewController = transform.GetChild(0).
+            GetComponent<BannerViewController>();
+        interstitialAdController = transform.GetChild(1).
+            GetComponent<InterstitialAdController>();
+        rewardedAdController = transform.GetChild(2).
+            GetComponent<RewardedAdController>();
+        rewardedInterstitialAdController = transform.GetChild(3).
+            GetComponent<RewardedInterstitialAdController>();
         LoadSelectedBike();
         LoadSelectedRider();
         //LoadSelectedBike();
@@ -73,10 +86,18 @@ public class GameManager : MonoBehaviour
         if (!PlayerPrefs.HasKey("GraphicQuality"))
         {
             var graphicsQualitySlider = UIManager.instance.graphicsQualitySlider;
-            QualitySettings.SetQualityLevel((int)graphicsQualitySlider.GetComponent<Slider>().value);
+            var graphicsQuality = (int)graphicsQualitySlider.GetComponent<Slider>().value;
+            QualitySettings.SetQualityLevel(graphicsQuality);
+            PlayerPrefs.SetInt("GraphicQuality", graphicsQuality);
         }
-        currentQualityLevel = QualitySettings.GetQualityLevel();
-        StartCalibration();
+        if (!PlayerPrefs.HasKey("FPSLimit"))
+        {
+            var fpsLimitSlider = UIManager.instance.fpsLimitSlider;
+            Application.targetFrameRate = 30;
+            PlayerPrefs.SetInt("FPSLimit", 0);
+        }
+            currentQualityLevel = QualitySettings.GetQualityLevel();
+        //StartCalibration();
     }
 
     private void StartCalibration()
@@ -165,6 +186,14 @@ public class GameManager : MonoBehaviour
             QualitySettings.SetQualityLevel((int)qualityIndex, false);
         else
             QualitySettings.SetQualityLevel((int)qualityIndex, true);
+        PlayerPrefs.SetInt("GraphicQuality", (int)qualityIndex);
+    }
+
+    public void SetFPSLimit(float sliderFPSLimit)
+    {
+        var fpsLimit = UIManager.instance.fpsLimitSlider.ConvertedFPSValue();
+        Application.targetFrameRate = fpsLimit;
+        PlayerPrefs.SetInt("FPSLimit", (int)sliderFPSLimit);
     }
 
     void UpdateSpawnTransform()
@@ -183,10 +212,29 @@ public class GameManager : MonoBehaviour
     }*/
     public void SetPauseState(bool isPaused)
     {
+        var pausedAudioSources = new List<AudioSource>();
         if (isPaused)
+        {
             Time.timeScale = 0;
+            bannerViewController.HideAd();
+            /*var audioSources = bikePhysicsController.GetComponentsInChildren<AudioSource>();
+            foreach (var audioSource in audioSources)
+            {
+                if (audioSource.isPlaying)
+                {
+                    pausedAudioSources.Add(audioSource);
+                    //Debug.Log(audioSource + " was paused!");
+                    audioSource.Pause();
+                }
+            }*/
+        }
         else
+        {
             Time.timeScale = 1;
+            bannerViewController.ShowAd();
+            /*foreach (var pausedAudioSource in pausedAudioSources)
+                pausedAudioSource.UnPause();*/
+        }
         this.isPaused = isPaused;
     }
 
@@ -212,6 +260,9 @@ public class GameManager : MonoBehaviour
         onBikeReset();
     }
 
-
+    public void OnReturnToMainMenu()
+    {
+        bannerViewController.DestroyAd();
+    }
 
 }
