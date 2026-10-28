@@ -15,7 +15,7 @@ including the UI/UX, audio, the map and the models. It was also a good way for m
 ## 🛠 How to Run
 Unity version: 2022.3.39f1
 
-Open the MainMenu scene and press Play
+Open the `MainMenu` scene and press Play
 
 ## 📄 License
 This project is for portfolio and evaluation purposes only.
