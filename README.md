@@ -1,4 +1,4 @@
-Moto Grau MX (Motorbike wheelie game)
+# Moto Grau MX (Motorbike wheelie game)
 This was my last attempt as a freelance game developer where I created almost everything from scratch. Except for the physics base, which I customized a lot, everything else have been created by me,
 including the UI/UX, audio, the map and the models. It was also a good way for me to implement Google AdMob in a project, as well as to pass by the hurdles to release it in the Google Play Store.
 
