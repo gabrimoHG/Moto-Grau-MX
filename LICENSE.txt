@@ -1,0 +1,8 @@
+Copyright (c) 2025 Gabriel Minosso de Oliveira
+
+All rights reserved.
+
+This code is provided for review and evaluation purposes only.
+You may view, clone, and run the project, but you may not copy, redistribute, modify, or use the code in your own projects without explicit written permission from the author.
+
+If you wish to use or adapt this code, please contact gabrimino@gmail.com for licensing inquiries.
